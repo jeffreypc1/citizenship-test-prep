@@ -70,6 +70,7 @@
         landing_title: "USCIS Citizenship Test Prep",
         landing_subtitle: "Free practice tests for the civics and English portions of the naturalization exam",
         continue_guest: "Continue as Guest",
+        get_started: "Get Started",
         sign_in: "Sign In",
         create_account: "Create Account",
         username: "Username",
@@ -238,6 +239,7 @@
         landing_title: "Preparaci\u00f3n para el Examen de Ciudadan\u00eda USCIS",
         landing_subtitle: "Pruebas de pr\u00e1ctica gratuitas para las secciones de educaci\u00f3n c\u00edvica e ingl\u00e9s del examen de naturalizaci\u00f3n",
         continue_guest: "Continuar como invitado",
+        get_started: "Comenzar",
         sign_in: "Iniciar sesi\u00f3n",
         create_account: "Crear cuenta",
         username: "Nombre de usuario",
@@ -363,6 +365,7 @@
         landing_title: "USCIS \u516C\u6C11\u8003\u8BD5\u51C6\u5907",
         landing_subtitle: "\u5F52\u5316\u8003\u8BD5\u7684\u516C\u6C11\u77E5\u8BC6\u548C\u82F1\u8BED\u90E8\u5206\u514D\u8D39\u7EC3\u4E60\u8BD5\u9898",
         continue_guest: "\u4EE5\u8BBF\u5BA2\u8EAB\u4EFD\u7EE7\u7EED",
+        get_started: "\u5F00\u59CB",
         sign_in: "\u767B\u5F55",
         create_account: "\u521B\u5EFA\u8D26\u6237",
         username: "\u7528\u6237\u540D",
@@ -488,6 +491,7 @@
         landing_title: "Luy\u1EC7n thi Qu\u1ED1c t\u1ECBch USCIS",
         landing_subtitle: "B\u00E0i thi th\u1EED mi\u1EC5n ph\u00ED cho ph\u1EA7n ki\u1EBFn th\u1EE9c c\u00F4ng d\u00E2n v\u00E0 ti\u1EBFng Anh c\u1EE7a k\u1EF3 thi nh\u1EADp qu\u1ED1c t\u1ECBch",
         continue_guest: "Ti\u1EBFp t\u1EE5c v\u1EDBi vai kh\u00E1ch",
+        get_started: "B\u1EAFt \u0111\u1EA7u",
         sign_in: "\u0110\u0103ng nh\u1EADp",
         create_account: "T\u1EA1o t\u00E0i kho\u1EA3n",
         username: "T\u00EAn ng\u01B0\u1EDDi d\u00F9ng",
@@ -570,6 +574,7 @@
         landing_title: "USCIS \uC2DC\uBBFC\uAD8C \uC2DC\uD5D8 \uC900\uBE44",
         landing_subtitle: "\uADC0\uD654 \uC2DC\uD5D8\uC758 \uC2DC\uBBFC \uC9C0\uC2DD \uBC0F \uC601\uC5B4 \uBD80\uBD84 \uBB34\uB8CC \uC5F0\uC2B5 \uC2DC\uD5D8",
         continue_guest: "\uC190\uB2D8\uC73C\uB85C \uACC4\uC18D",
+        get_started: "\uC2DC\uC791\uD558\uAE30",
         sign_in: "\uB85C\uADF8\uC778",
         create_account: "\uACC4\uC815 \uB9CC\uB4E4\uAE30",
         username: "\uC0AC\uC6A9\uC790\uBA85",
@@ -652,6 +657,7 @@
         landing_title: "Paghahanda sa Pagsusulit ng Pagkamamamayan ng USCIS",
         landing_subtitle: "Libreng mga practice test para sa bahagi ng civics at Ingles ng naturalization exam",
         continue_guest: "Magpatuloy bilang Bisita",
+        get_started: "Magsimula",
         sign_in: "Mag-sign In",
         create_account: "Gumawa ng Account",
         username: "Username",
@@ -734,6 +740,7 @@
         landing_title: "\u0627\u0644\u062A\u062D\u0636\u064A\u0631 \u0644\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0645\u0648\u0627\u0637\u0646\u0629 USCIS",
         landing_subtitle: "\u0627\u062E\u062A\u0628\u0627\u0631\u0627\u062A \u062A\u062F\u0631\u064A\u0628\u064A\u0629 \u0645\u062C\u0627\u0646\u064A\u0629 \u0644\u0623\u062C\u0632\u0627\u0621 \u0627\u0644\u062A\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062F\u0646\u064A\u0629 \u0648\u0627\u0644\u0644\u063A\u0629 \u0627\u0644\u0625\u0646\u062C\u0644\u064A\u0632\u064A\u0629 \u0645\u0646 \u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u062A\u062C\u0646\u0633",
         continue_guest: "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0643\u0636\u064A\u0641",
+        get_started: "\u0627\u0628\u062F\u0623",
         sign_in: "\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644",
         create_account: "\u0625\u0646\u0634\u0627\u0621 \u062D\u0633\u0627\u0628",
         username: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645",
@@ -816,6 +823,7 @@
         landing_title: "Pr\u00e9paration au test de citoyennet\u00e9 USCIS",
         landing_subtitle: "Tests pratiques gratuits pour les sections d'\u00e9ducation civique et d'anglais de l'examen de naturalisation",
         continue_guest: "Continuer en tant qu'invit\u00e9",
+        get_started: "Commencer",
         sign_in: "Se connecter",
         create_account: "Cr\u00e9er un compte",
         username: "Nom d'utilisateur",
@@ -941,6 +949,7 @@
         landing_title: "Prepara\u00e7\u00e3o para o Teste de Cidadania USCIS",
         landing_subtitle: "Testes pr\u00e1ticos gratuitos para as se\u00e7\u00f5es de educa\u00e7\u00e3o c\u00edvica e ingl\u00eas do exame de naturaliza\u00e7\u00e3o",
         continue_guest: "Continuar como convidado",
+        get_started: "Come\u00e7ar",
         sign_in: "Entrar",
         create_account: "Criar conta",
         username: "Nome de usu\u00e1rio",
@@ -1066,6 +1075,7 @@
         landing_title: "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u043A \u044D\u043A\u0437\u0430\u043C\u0435\u043D\u0443 \u043D\u0430 \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u043E USCIS",
         landing_subtitle: "\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0435 \u043F\u0440\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0442\u0435\u0441\u0442\u044B \u043F\u043E \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u043E\u0432\u0435\u0434\u0435\u043D\u0438\u044E \u0438 \u0430\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u043E\u043C\u0443 \u044F\u0437\u044B\u043A\u0443 \u0434\u043B\u044F \u044D\u043A\u0437\u0430\u043C\u0435\u043D\u0430 \u043D\u0430 \u043D\u0430\u0442\u0443\u0440\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u044E",
         continue_guest: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u043A\u0430\u043A \u0433\u043E\u0441\u0442\u044C",
+        get_started: "\u041D\u0430\u0447\u0430\u0442\u044C",
         sign_in: "\u0412\u043E\u0439\u0442\u0438",
         create_account: "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442",
         username: "\u0418\u043C\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F",
@@ -1450,60 +1460,6 @@
 
     function initLanding() {
         $("#landingGuestBtn").addEventListener("click", () => loginAs("guest"));
-        $("#landingSignInBtn").addEventListener("click", () => {
-            const authCard = $("#authCard");
-            if (authCard.style.display === "none") {
-                show(authCard);
-                hide($("#landingSignInBtn"));
-            }
-        });
-        // Auth tabs
-        $("#authTabSignIn").addEventListener("click", () => {
-            $("#authTabSignIn").classList.add("active");
-            $("#authTabCreate").classList.remove("active");
-            show($("#authSignInForm"));
-            hide($("#authCreateForm"));
-        });
-        $("#authTabCreate").addEventListener("click", () => {
-            $("#authTabCreate").classList.add("active");
-            $("#authTabSignIn").classList.remove("active");
-            hide($("#authSignInForm"));
-            show($("#authCreateForm"));
-        });
-        // Sign in
-        $("#authSignInSubmit").addEventListener("click", doSignIn);
-        $("#authSignInPass").addEventListener("keydown", e => { if (e.key === "Enter") doSignIn(); });
-        // Create account
-        $("#authCreateSubmit").addEventListener("click", doCreateAccount);
-        $("#authCreateConfirm").addEventListener("keydown", e => { if (e.key === "Enter") doCreateAccount(); });
-    }
-
-    function doSignIn() {
-        const username = $("#authSignInUser").value.trim().toLowerCase();
-        const password = $("#authSignInPass").value;
-        const errorEl = $("#authSignInError");
-        if (!username || !password) { errorEl.textContent = t("fields_required"); return; }
-        const users = getUsers();
-        if (!users[username]) { errorEl.textContent = t("wrong_password"); return; }
-        if (users[username].passwordHash !== simpleHash(password)) { errorEl.textContent = t("wrong_password"); return; }
-        errorEl.textContent = "";
-        loginAs(username);
-    }
-
-    function doCreateAccount() {
-        const display = $("#authCreateDisplay").value.trim();
-        const username = $("#authCreateUser").value.trim().toLowerCase();
-        const password = $("#authCreatePass").value;
-        const confirm = $("#authCreateConfirm").value;
-        const errorEl = $("#authCreateError");
-        if (!display || !username || !password || !confirm) { errorEl.textContent = t("fields_required"); return; }
-        if (password !== confirm) { errorEl.textContent = t("passwords_no_match"); return; }
-        const users = getUsers();
-        if (users[username]) { errorEl.textContent = t("username_taken"); return; }
-        users[username] = { displayName: display, passwordHash: simpleHash(password) };
-        saveUsers(users);
-        errorEl.textContent = "";
-        loginAs(username);
     }
 
     function loginAs(username) {
@@ -1530,7 +1486,6 @@
         setCurrentUser("");
         navigationStack = [];
         currentScreen = "home";
-        // Hide app, show landing
         hide($("#mainHeader"));
         hide($("#mainFooter"));
         hide($("#homeScreen"));
@@ -1539,34 +1494,12 @@
         hide($("#englishSelection"));
         hide($("#englishPractice"));
         hide($("#eligibilityCheck"));
-        // Reset auth forms
-        const ac = $("#authCard");
-        if (ac) { hide(ac); show($("#landingSignInBtn")); }
-        $("#authSignInUser").value = "";
-        $("#authSignInPass").value = "";
-        $("#authSignInError").textContent = "";
-        $("#authCreateDisplay").value = "";
-        $("#authCreateUser").value = "";
-        $("#authCreatePass").value = "";
-        $("#authCreateConfirm").value = "";
-        $("#authCreateError").textContent = "";
         show($("#landingPage"));
         applyTranslations();
     }
 
     function updateUserUI() {
-        const isGuest = currentUser === "guest";
-        const users = getUsers();
-        let displayName = t("guest");
-        let initial = "G";
-        if (!isGuest && users[currentUser]) {
-            displayName = users[currentUser].displayName || currentUser;
-            initial = displayName.charAt(0).toUpperCase();
-        }
-        const avatarInit = $("#userAvatarInitial");
-        if (avatarInit) avatarInit.textContent = initial;
-        const ddName = $("#userDropdownName");
-        if (ddName) ddName.textContent = displayName;
+        // Guest mode only — no user UI to update
     }
 
     // ---- Language Selectors ----
@@ -1592,7 +1525,6 @@
         document.addEventListener("click", () => {
             hide($("#landingLangDropdown"));
             hide($("#headerLangDropdown"));
-            hide($("#userDropdown"));
         });
 
         // Set initial language label
@@ -1604,16 +1536,9 @@
         applyTranslations();
     }
 
-    // ---- User Menu ----
+    // ---- User Menu (simplified — guest only for now) ----
     function initUserMenu() {
-        $("#userAvatarBtn").addEventListener("click", (e) => {
-            e.stopPropagation();
-            const dd = $("#userDropdown");
-            if (dd.style.display === "none") show(dd);
-            else hide(dd);
-        });
-        $("#userSignOutBtn").addEventListener("click", () => { hide($("#userDropdown")); signOut(); });
-        $("#userSwitchBtn").addEventListener("click", () => { hide($("#userDropdown")); signOut(); });
+        // No user menu UI — guest mode only
     }
 
     // ================================================================

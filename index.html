@@ -39,50 +39,7 @@
             <h1 class="landing-title" data-i18n="landing_title">USCIS Citizenship Test Prep</h1>
             <p class="landing-subtitle" data-i18n="landing_subtitle">Free practice tests for the civics and English portions of the naturalization exam</p>
             <div class="landing-ctas">
-                <button class="landing-btn landing-btn--primary" id="landingSignInBtn" data-i18n="sign_in">Sign In</button>
-                <button class="landing-btn landing-btn--outline" id="landingGuestBtn" data-i18n="continue_guest">Continue as Guest</button>
-            </div>
-
-            <!-- Auth form (hidden by default) -->
-            <div class="auth-card" id="authCard" style="display:none;">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" id="authTabSignIn" data-i18n="sign_in">Sign In</button>
-                    <button class="auth-tab" id="authTabCreate" data-i18n="create_account">Create Account</button>
-                </div>
-                <!-- Sign In Form -->
-                <div class="auth-form" id="authSignInForm">
-                    <div class="auth-field">
-                        <label for="authSignInUser" data-i18n="username">Username</label>
-                        <input type="text" id="authSignInUser" autocomplete="username" spellcheck="false">
-                    </div>
-                    <div class="auth-field">
-                        <label for="authSignInPass" data-i18n="password">Password</label>
-                        <input type="password" id="authSignInPass" autocomplete="current-password">
-                    </div>
-                    <div class="auth-error" id="authSignInError"></div>
-                    <button class="landing-btn landing-btn--primary auth-submit" id="authSignInSubmit" data-i18n="sign_in">Sign In</button>
-                </div>
-                <!-- Create Account Form -->
-                <div class="auth-form" id="authCreateForm" style="display:none;">
-                    <div class="auth-field">
-                        <label for="authCreateDisplay" data-i18n="display_name">Display Name</label>
-                        <input type="text" id="authCreateDisplay" autocomplete="name" spellcheck="false">
-                    </div>
-                    <div class="auth-field">
-                        <label for="authCreateUser" data-i18n="username">Username</label>
-                        <input type="text" id="authCreateUser" autocomplete="username" spellcheck="false">
-                    </div>
-                    <div class="auth-field">
-                        <label for="authCreatePass" data-i18n="password">Password</label>
-                        <input type="password" id="authCreatePass" autocomplete="new-password">
-                    </div>
-                    <div class="auth-field">
-                        <label for="authCreateConfirm" data-i18n="confirm_password">Confirm Password</label>
-                        <input type="password" id="authCreateConfirm" autocomplete="new-password">
-                    </div>
-                    <div class="auth-error" id="authCreateError"></div>
-                    <button class="landing-btn landing-btn--primary auth-submit" id="authCreateSubmit" data-i18n="create_account">Create Account</button>
-                </div>
+                <button class="landing-btn landing-btn--primary" id="landingGuestBtn" data-i18n="get_started">Get Started</button>
             </div>
         </div>
     </div>
@@ -107,17 +64,7 @@
                     </button>
                     <div class="lang-dropdown" id="headerLangDropdown" style="display:none;"></div>
                 </div>
-                <!-- User menu -->
-                <div class="user-menu-wrapper">
-                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User menu" title="User menu">
-                        <span class="user-avatar-initial" id="userAvatarInitial">G</span>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown" style="display:none;">
-                        <div class="user-dropdown-name" id="userDropdownName">Guest</div>
-                        <button class="user-dropdown-item" id="userSwitchBtn" data-i18n="switch_user">Switch User</button>
-                        <button class="user-dropdown-item" id="userSignOutBtn" data-i18n="sign_out">Sign Out</button>
-                    </div>
-                </div>
+                <!-- User menu placeholder for future use -->
                 <button class="icon-btn" id="settingsToggle" aria-label="Settings" title="Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
