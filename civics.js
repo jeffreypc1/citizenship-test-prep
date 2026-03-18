@@ -1506,13 +1506,16 @@
         buildLangDropdown("landingLangDropdown");
         buildLangDropdown("headerLangDropdown");
 
-        // Landing language button
-        $("#landingLangBtn").addEventListener("click", (e) => {
-            e.stopPropagation();
-            const dd = $("#landingLangDropdown");
-            if (dd.style.display === "none") { buildLangDropdown("landingLangDropdown"); show(dd); }
-            else hide(dd);
-        });
+        // Landing language button (may not exist if landing page removed)
+        const landingLangBtn = $("#landingLangBtn");
+        if (landingLangBtn) {
+            landingLangBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const dd = $("#landingLangDropdown");
+                if (dd.style.display === "none") { buildLangDropdown("landingLangDropdown"); show(dd); }
+                else hide(dd);
+            });
+        }
         // Header language button
         $("#headerLangBtn").addEventListener("click", (e) => {
             e.stopPropagation();
