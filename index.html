@@ -139,10 +139,6 @@
                         <button class="user-dropdown-item" id="userSignOutBtn" data-i18n="sign_out">Sign Out</button>
                     </div>
                 </div>
-                <button class="icon-btn" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                </button>
                 <button class="icon-btn" id="settingsToggle" aria-label="Settings" title="Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
@@ -205,7 +201,6 @@
                     <div class="shortcut-item"><kbd>S</kbd><span>Shuffle cards</span></div>
                     <div class="shortcut-item"><kbd>1</kbd><span>I Got It Right</span></div>
                     <div class="shortcut-item"><kbd>2</kbd><span>I Got It Wrong</span></div>
-                    <div class="shortcut-item"><kbd>D</kbd><span>Toggle dark mode</span></div>
                 </div>
             </div>
         </div>
@@ -251,6 +246,30 @@
 
             <!-- Main cards -->
             <div class="home-cards">
+                <button class="home-card glass-card" id="eligibilityCard" aria-label="N-400 Eligibility Check">
+                    <div class="home-card-icon">
+                        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48">
+                            <path d="M24 4L6 12v12c0 11 8 18 18 22 10-4 18-11 18-22V12L24 4z" fill="var(--success)" stroke="none" opacity="0.15"/>
+                            <path d="M24 4L6 12v12c0 11 8 18 18 22 10-4 18-11 18-22V12L24 4z"/>
+                            <polyline points="16 24 22 30 32 18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="home-card-title" data-i18n="eligibility_check">Eligibility Check</h2>
+                    <p class="home-card-desc">See if you may be ready to apply for U.S. citizenship based on the N-400 requirements.</p>
+                    <div class="home-card-progress" id="eligibilityProgress">
+                        <svg class="elig-donut-svg" viewBox="0 0 80 80" id="eligDonut">
+                            <circle class="progress-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="6"/>
+                            <circle class="elig-donut-green" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
+                            <circle class="elig-donut-yellow" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
+                            <circle class="elig-donut-red" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
+                            <circle class="elig-donut-gray" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
+                        </svg>
+                        <span class="progress-ring-text" id="eligRingText"></span>
+                    </div>
+                    <div class="home-card-status" id="eligibilityStatus"></div>
+                    <span class="home-card-action" data-i18n="check_now">Check Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </button>
+
                 <button class="home-card glass-card" id="civicsCard" aria-label="Practice Civics Test">
                     <div class="home-card-icon">
                         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48"><path d="M8 6h32v36H8z" rx="3"/><path d="M14 14h20M14 22h20M14 30h12"/><circle cx="36" cy="36" r="8" fill="var(--primary)" stroke="none" opacity="0.15"/><path d="M33 36l2 2 4-4" stroke="var(--primary)" stroke-width="2.5"/></svg>
@@ -265,7 +284,7 @@
                         <span class="progress-ring-text" id="civicsRingText">0%</span>
                     </div>
                     <div class="home-card-status" id="civicsStatus"></div>
-                    <span class="home-card-action">Start Studying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="home-card-action" data-i18n="start_studying">Start Studying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
                 </button>
 
                 <button class="home-card glass-card" id="englishCard" aria-label="Practice English Test">
@@ -282,30 +301,7 @@
                         <span class="progress-ring-text" id="englishRingText">0%</span>
                     </div>
                     <div class="home-card-status" id="englishStatus"></div>
-                    <span class="home-card-action">Start Practicing <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-                </button>
-
-                <button class="home-card glass-card" id="eligibilityCard" aria-label="N-400 Eligibility Check">
-                    <div class="home-card-icon">
-                        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48">
-                            <path d="M24 4L6 12v12c0 11 8 18 18 22 10-4 18-11 18-22V12L24 4z" fill="var(--success)" stroke="none" opacity="0.15"/>
-                            <path d="M24 4L6 12v12c0 11 8 18 18 22 10-4 18-11 18-22V12L24 4z"/>
-                            <polyline points="16 24 22 30 32 18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <h2 class="home-card-title" data-i18n="eligibility_check">Eligibility Check</h2>
-                    <p class="home-card-desc">See if you may be ready to apply for U.S. citizenship.</p>
-                    <div class="home-card-progress" id="eligibilityProgress">
-                        <svg class="elig-donut-svg" viewBox="0 0 80 80" id="eligDonut">
-                            <circle class="progress-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="6"/>
-                            <circle class="elig-donut-green" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
-                            <circle class="elig-donut-yellow" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
-                            <circle class="elig-donut-red" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="0 213.63" stroke-dashoffset="0"/>
-                        </svg>
-                        <span class="progress-ring-text" id="eligRingText"></span>
-                    </div>
-                    <div class="home-card-status" id="eligibilityStatus"></div>
-                    <span class="home-card-action">Check Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="home-card-action" data-i18n="start_practicing">Start Practicing <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
                 </button>
             </div>
 
@@ -321,97 +317,97 @@
             <!-- FAQ Section -->
             <div class="faq-section" id="faqSection">
                 <h2 class="faq-section-title" data-i18n="common_questions">Common Questions &amp; Concerns</h2>
-                <p class="faq-section-subtitle">Answers to the questions applicants ask most often.</p>
+                <p class="faq-section-subtitle" data-i18n="faq_subtitle">Answers to the questions applicants ask most often.</p>
 
                 <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128176;</span> Money &amp; Costs</h3>
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128176;</span> <span data-i18n="faq_cat_money">Money &amp; Costs</span></h3>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">How much does it cost to apply for citizenship?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>The N-400 filing fee is $760 (or $710 online). Fee waivers are available for low-income applicants using Form I-912.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_cost">How much does it cost to apply for citizenship?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_cost">The N-400 filing fee is $760 (or $710 online). Fee waivers are available for low-income applicants using Form I-912.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Can I get help paying for it?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes. Many non-profit organizations offer fee assistance. See the resources section below.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_fee_help">Can I get help paying for it?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_fee_help">Yes. Many non-profit organizations offer fee assistance. See the resources section below.</p></div>
                     </div>
                 </div>
 
                 <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128274;</span> Privacy &amp; Safety</h3>
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128274;</span> <span data-i18n="faq_cat_privacy">Privacy &amp; Safety</span></h3>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Will my information be shared?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>USCIS keeps your application confidential. Information is protected under federal privacy laws.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_info_shared">Will my information be shared?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_info_shared">USCIS keeps your application confidential. Information is protected under federal privacy laws.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Can I apply if I'm in a domestic violence situation?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes. VAWA (Violence Against Women Act) protections may apply. Contact a legal aid organization for confidential help.</p></div>
-                    </div>
-                </div>
-
-                <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#9878;&#65039;</span> Criminal Background</h3>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">I was arrested but charges were dropped. Do I still have to disclose it?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes. You must disclose ALL arrests, charges, citations, and detentions &mdash; even if dismissed, expunged, or sealed.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Will a DUI prevent me from becoming a citizen?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>A single DUI is typically not a bar, but two or more DUIs may be. Consult an immigration attorney.</p></div>
-                    </div>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">I had a juvenile offense. Does that count?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Juvenile offenses may still need to be disclosed. Consult an attorney for guidance.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_dv">Can I apply if I'm in a domestic violence situation?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_dv">Yes. VAWA (Violence Against Women Act) protections may apply. Contact a legal aid organization for confidential help.</p></div>
                     </div>
                 </div>
 
                 <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128203;</span> Taxes</h3>
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#9878;&#65039;</span> <span data-i18n="faq_cat_criminal">Criminal Background</span></h3>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">What if I missed filing taxes for one year?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>File the missing return(s) before your interview. Bring IRS tax transcripts as proof.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_arrested_dropped">I was arrested but charges were dropped. Do I still have to disclose it?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_arrested_dropped">Yes. You must disclose ALL arrests, charges, citations, and detentions &mdash; even if dismissed, expunged, or sealed.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Do I need to bring tax documents to my interview?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes. Bring IRS tax transcripts for the past 3&ndash;5 years (depending on your track).</p></div>
-                    </div>
-                </div>
-
-                <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#9992;&#65039;</span> Travel</h3>
-                    <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Can I travel while my N-400 is pending?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes, but extended travel during the process could cause issues. Keep trips short.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_dui">Will a DUI prevent me from becoming a citizen?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_dui">A single DUI is typically not a bar, but two or more DUIs may be. Consult an immigration attorney.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">I took a long trip. Is my application ruined?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Not necessarily. Trips under 6 months are usually fine. 6&ndash;12 months need explanation. Over 1 year may require restarting.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_juvenile">I had a juvenile offense. Does that count?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_juvenile">Juvenile offenses may still need to be disclosed. Consult an attorney for guidance.</p></div>
                     </div>
                 </div>
 
                 <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128179;</span> Green Card Issues</h3>
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128203;</span> <span data-i18n="faq_cat_taxes">Taxes</span></h3>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">My green card expired. Can I still apply?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Yes. An expired green card does not affect your immigration status. You can apply with an expired card.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_missed_taxes">What if I missed filing taxes for one year?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_missed_taxes">File the missing return(s) before your interview. Bring IRS tax transcripts as proof.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">I got my green card through marriage but I'm now divorced. Can I still apply?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>If you've been an LPR for 5+ years, yes (using the standard 5-year track, not the 3-year married track).</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_tax_docs">Do I need to bring tax documents to my interview?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_tax_docs">Yes. Bring IRS tax transcripts for the past 3&ndash;5 years (depending on your track).</p></div>
                     </div>
                 </div>
 
                 <div class="faq-category">
-                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128221;</span> General Process</h3>
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#9992;&#65039;</span> <span data-i18n="faq_cat_travel">Travel</span></h3>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">How long does the process take?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Currently 6&ndash;12 months from filing to oath ceremony, depending on your location.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_travel_pending">Can I travel while my N-400 is pending?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_travel_pending">Yes, but extended travel during the process could cause issues. Keep trips short.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">What happens at the interview?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>A USCIS officer will review your N-400, test your English, ask civics questions, and ask about your background.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_long_trip">I took a long trip. Is my application ruined?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_long_trip">Not necessarily. Trips under 6 months are usually fine. 6&ndash;12 months need explanation. Over 1 year may require restarting.</p></div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128179;</span> <span data-i18n="faq_cat_green_card">Green Card Issues</span></h3>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_expired_gc">My green card expired. Can I still apply?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_expired_gc">Yes. An expired green card does not affect your immigration status. You can apply with an expired card.</p></div>
                     </div>
                     <div class="faq-item">
-                        <button class="faq-question" aria-expanded="false">Can I bring an interpreter?<span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
-                        <div class="faq-answer"><p>Only if you qualify for the English test exemption. Otherwise, the interview is conducted in English.</p></div>
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_divorced">I got my green card through marriage but I'm now divorced. Can I still apply?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_divorced">If you've been an LPR for 5+ years, yes (using the standard 5-year track, not the 3-year married track).</p></div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3 class="faq-category-title"><span class="faq-cat-icon">&#128221;</span> <span data-i18n="faq_cat_process">General Process</span></h3>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_how_long">How long does the process take?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_how_long">Currently 6&ndash;12 months from filing to oath ceremony, depending on your location.</p></div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_interview">What happens at the interview?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_interview">A USCIS officer will review your N-400, test your English, ask civics questions, and ask about your background.</p></div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question" aria-expanded="false"><span data-i18n="faq_q_interpreter">Can I bring an interpreter?</span><span class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+                        <div class="faq-answer"><p data-i18n="faq_a_interpreter">Only if you qualify for the English test exemption. Otherwise, the interview is conducted in English.</p></div>
                     </div>
                 </div>
             </div>
@@ -419,7 +415,7 @@
             <!-- Resources Section -->
             <div class="resources-section" id="resourcesSection">
                 <h2 class="resources-section-title" data-i18n="find_help">Find Help Near You</h2>
-                <p class="resources-section-subtitle">Organizations and attorneys who can help with your citizenship journey.</p>
+                <p class="resources-section-subtitle" data-i18n="resources_subtitle">Organizations and attorneys who can help with your citizenship journey.</p>
 
                 <h3 class="resources-group-title"><span class="resource-badge resource-badge--nonprofit">Non-Profit</span> Legal Aid</h3>
                 <div class="resources-grid">
@@ -469,7 +465,7 @@
                     </div>
                 </div>
 
-                <p class="resources-disclaimer">This is a demo list. Contact information is for illustration purposes.</p>
+                <p class="resources-disclaimer" data-i18n="resources_disclaimer">This is a demo list. Contact information is for illustration purposes.</p>
             </div>
         </div>
     </main>
@@ -696,6 +692,7 @@
                 <div class="practice-question-text" id="practiceQuestionText"></div>
                 <div class="practice-choices" id="practiceChoices" role="radiogroup" aria-label="Answer choices"></div>
                 <button class="primary-btn" id="practiceSubmitAnswer" disabled>Submit Answer</button>
+                <div style="text-align:center;" id="practiceSaveBtnArea"></div>
             </div>
             <div id="practiceResults" class="practice-results" style="display:none;">
                 <div class="results-card glass-card">

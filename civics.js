@@ -31,7 +31,7 @@
         set(k, v) { try { localStorage.setItem(lsPrefix() + k, JSON.stringify(v)); autoSaveFlash(); } catch {} },
     };
 
-    // Global LS (not profile-scoped, for settings like dark mode, language, voice)
+    // Global LS (not profile-scoped, for settings like language, voice)
     const GLS = {
         get(k, fallback) { try { const v = localStorage.getItem("civics_" + k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
         set(k, v) { try { localStorage.setItem("civics_" + k, JSON.stringify(v)); } catch {} },
@@ -140,6 +140,87 @@
         username_taken: "Username already taken",
         passwords_no_match: "Passwords do not match",
         fields_required: "All fields are required",
+        not_started: "Not Started",
+        in_progress: "In Progress",
+        of: "of",
+        checked: "checked",
+        all_clear: "All Clear!",
+        save_continue_later: "Save & Continue Later",
+        progress_saved_toast: "Progress saved! You can continue anytime.",
+        // FAQ translations
+        faq_subtitle: "Answers to the questions applicants ask most often.",
+        faq_cat_money: "Money & Costs",
+        faq_q_cost: "How much does it cost to apply for citizenship?",
+        faq_a_cost: "The N-400 filing fee is $760 (or $710 online). Fee waivers are available for low-income applicants using Form I-912.",
+        faq_q_fee_help: "Can I get help paying for it?",
+        faq_a_fee_help: "Yes. Many non-profit organizations offer fee assistance. See the resources section below.",
+        faq_cat_privacy: "Privacy & Safety",
+        faq_q_info_shared: "Will my information be shared?",
+        faq_a_info_shared: "USCIS keeps your application confidential. Information is protected under federal privacy laws.",
+        faq_q_dv: "Can I apply if I'm in a domestic violence situation?",
+        faq_a_dv: "Yes. VAWA (Violence Against Women Act) protections may apply. Contact a legal aid organization for confidential help.",
+        faq_cat_criminal: "Criminal Background",
+        faq_q_arrested_dropped: "I was arrested but charges were dropped. Do I still have to disclose it?",
+        faq_a_arrested_dropped: "Yes. You must disclose ALL arrests, charges, citations, and detentions \u2014 even if dismissed, expunged, or sealed.",
+        faq_q_dui: "Will a DUI prevent me from becoming a citizen?",
+        faq_a_dui: "A single DUI is typically not a bar, but two or more DUIs may be. Consult an immigration attorney.",
+        faq_q_juvenile: "I had a juvenile offense. Does that count?",
+        faq_a_juvenile: "Juvenile offenses may still need to be disclosed. Consult an attorney for guidance.",
+        faq_cat_taxes: "Taxes",
+        faq_q_missed_taxes: "What if I missed filing taxes for one year?",
+        faq_a_missed_taxes: "File the missing return(s) before your interview. Bring IRS tax transcripts as proof.",
+        faq_q_tax_docs: "Do I need to bring tax documents to my interview?",
+        faq_a_tax_docs: "Yes. Bring IRS tax transcripts for the past 3\u20135 years (depending on your track).",
+        faq_cat_travel: "Travel",
+        faq_q_travel_pending: "Can I travel while my N-400 is pending?",
+        faq_a_travel_pending: "Yes, but extended travel during the process could cause issues. Keep trips short.",
+        faq_q_long_trip: "I took a long trip. Is my application ruined?",
+        faq_a_long_trip: "Not necessarily. Trips under 6 months are usually fine. 6\u201312 months need explanation. Over 1 year may require restarting.",
+        faq_cat_green_card: "Green Card Issues",
+        faq_q_expired_gc: "My green card expired. Can I still apply?",
+        faq_a_expired_gc: "Yes. An expired green card does not affect your immigration status. You can apply with an expired card.",
+        faq_q_divorced: "I got my green card through marriage but I'm now divorced. Can I still apply?",
+        faq_a_divorced: "If you've been an LPR for 5+ years, yes (using the standard 5-year track, not the 3-year married track).",
+        faq_cat_process: "General Process",
+        faq_q_how_long: "How long does the process take?",
+        faq_a_how_long: "Currently 6\u201312 months from filing to oath ceremony, depending on your location.",
+        faq_q_interview: "What happens at the interview?",
+        faq_a_interview: "A USCIS officer will review your N-400, test your English, ask civics questions, and ask about your background.",
+        faq_q_interpreter: "Can I bring an interpreter?",
+        faq_a_interpreter: "Only if you qualify for the English test exemption. Otherwise, the interview is conducted in English.",
+        // Resources
+        resources_subtitle: "Organizations and attorneys who can help with your citizenship journey.",
+        resources_disclaimer: "This is a demo list. Contact information is for illustration purposes.",
+        // Eligibility questions
+        elig_step_of: "Step {0} of {1}",
+        elig_results_title: "Results",
+        // Practice config
+        practice_need_pass: "Need {0} correct to pass (60%)",
+        no_questions_match: "No questions match your filters.",
+        no_test_history: "No test history yet. Take a practice test to see your results here.",
+        marked_as_known: "{0} marked as known",
+        question_n_of: "Question {0} of {1}",
+        score_label: "Score: {0}",
+        correct_out_of: "{0} correct out of {1} questions",
+        // English practice
+        no_speech_detected: "No speech detected. Try again.",
+        good_response: "Good response! You spoke a complete answer.",
+        try_full_sentence: "Try to answer in a full sentence for better practice.",
+        try_again_complete: "Try again with a more complete answer.",
+        you_said: "You said:",
+        // Mock test
+        mock_test_title: "Full English Mock Test",
+        mock_test_desc: "This simulates the real USCIS English test: 3 Reading sentences + 3 Writing sentences + Speaking section",
+        begin_mock_test: "Begin Mock Test",
+        reading_section: "Reading Section",
+        writing_section: "Writing Section (Dictation)",
+        speaking_section: "Speaking Section",
+        read_sentence_aloud: "Read the following sentence aloud:",
+        listen_then_type: "Listen to the sentence, then type what you heard:",
+        answer_question: "Answer the following question:",
+        take_another: "Take Another Mock Test",
+        // Eligibility self-check detail text
+        elig_disclaimer: "This is an informational tool only and is not legal advice. Eligibility for naturalization depends on many factors. Consult an immigration attorney for personalized guidance.",
     },
     es: {
         landing_title: "Preparaci\u00f3n para el Examen de Ciudadan\u00eda USCIS",
@@ -215,6 +296,56 @@
         username_taken: "Nombre de usuario ya existe",
         passwords_no_match: "Las contrase\u00f1as no coinciden",
         fields_required: "Todos los campos son obligatorios",
+        not_started: "No iniciado",
+        in_progress: "En progreso",
+        of: "de",
+        checked: "verificados",
+        all_clear: "\u00a1Todo bien!",
+        save_continue_later: "Guardar y continuar despu\u00e9s",
+        progress_saved_toast: "\u00a1Progreso guardado! Puedes continuar en cualquier momento.",
+        faq_subtitle: "Respuestas a las preguntas m\u00e1s frecuentes de los solicitantes.",
+        faq_cat_money: "Dinero y costos",
+        faq_q_cost: "\u00bfCu\u00e1nto cuesta solicitar la ciudadan\u00eda?",
+        faq_a_cost: "La tarifa del formulario N-400 es de $760 ($710 en l\u00ednea). Hay exenciones de tarifas disponibles para solicitantes de bajos ingresos usando el Formulario I-912.",
+        faq_q_fee_help: "\u00bfPuedo obtener ayuda para pagar?",
+        faq_a_fee_help: "S\u00ed. Muchas organizaciones sin fines de lucro ofrecen asistencia con las tarifas. Consulte la secci\u00f3n de recursos a continuaci\u00f3n.",
+        faq_cat_privacy: "Privacidad y seguridad",
+        faq_q_info_shared: "\u00bfSe compartir\u00e1 mi informaci\u00f3n?",
+        faq_a_info_shared: "USCIS mantiene su solicitud confidencial. La informaci\u00f3n est\u00e1 protegida por las leyes federales de privacidad.",
+        faq_q_dv: "\u00bfPuedo solicitar si estoy en una situaci\u00f3n de violencia dom\u00e9stica?",
+        faq_a_dv: "S\u00ed. Las protecciones de VAWA (Ley de Violencia Contra la Mujer) pueden aplicar. Contacte una organizaci\u00f3n de ayuda legal para asistencia confidencial.",
+        faq_cat_criminal: "Antecedentes penales",
+        faq_q_arrested_dropped: "Fui arrestado pero los cargos fueron retirados. \u00bfTodav\u00eda tengo que revelarlo?",
+        faq_a_arrested_dropped: "S\u00ed. Debe revelar TODOS los arrestos, cargos, citaciones y detenciones, incluso si fueron desestimados, borrados o sellados.",
+        faq_q_dui: "\u00bfUn DUI me impedir\u00e1 obtener la ciudadan\u00eda?",
+        faq_a_dui: "Un solo DUI generalmente no es un impedimento, pero dos o m\u00e1s podr\u00edan serlo. Consulte a un abogado de inmigraci\u00f3n.",
+        faq_q_juvenile: "Tuve una ofensa juvenil. \u00bfCuenta eso?",
+        faq_a_juvenile: "Las ofensas juveniles a\u00fan pueden necesitar ser reveladas. Consulte a un abogado para orientaci\u00f3n.",
+        faq_cat_taxes: "Impuestos",
+        faq_q_missed_taxes: "\u00bfQu\u00e9 pasa si no present\u00e9 impuestos un a\u00f1o?",
+        faq_a_missed_taxes: "Presente la(s) declaraci\u00f3n(es) faltante(s) antes de su entrevista. Lleve transcripciones de impuestos del IRS como prueba.",
+        faq_q_tax_docs: "\u00bfNecesito llevar documentos de impuestos a mi entrevista?",
+        faq_a_tax_docs: "S\u00ed. Lleve transcripciones de impuestos del IRS de los \u00faltimos 3 a 5 a\u00f1os (dependiendo de su v\u00eda).",
+        faq_cat_travel: "Viajes",
+        faq_q_travel_pending: "\u00bfPuedo viajar mientras mi N-400 est\u00e1 pendiente?",
+        faq_a_travel_pending: "S\u00ed, pero los viajes prolongados durante el proceso podr\u00edan causar problemas. Mantenga los viajes cortos.",
+        faq_q_long_trip: "Hice un viaje largo. \u00bfSe arruin\u00f3 mi solicitud?",
+        faq_a_long_trip: "No necesariamente. Viajes de menos de 6 meses generalmente est\u00e1n bien. De 6 a 12 meses necesitan explicaci\u00f3n. M\u00e1s de 1 a\u00f1o puede requerir reiniciar.",
+        faq_cat_green_card: "Problemas con la tarjeta verde",
+        faq_q_expired_gc: "Mi tarjeta verde expir\u00f3. \u00bfPuedo solicitar a\u00fan?",
+        faq_a_expired_gc: "S\u00ed. Una tarjeta verde expirada no afecta su estatus migratorio. Puede solicitar con una tarjeta expirada.",
+        faq_q_divorced: "Obtuve mi tarjeta verde por matrimonio pero ahora estoy divorciado/a. \u00bfPuedo solicitar?",
+        faq_a_divorced: "Si ha sido residente permanente por 5+ a\u00f1os, s\u00ed (usando la v\u00eda est\u00e1ndar de 5 a\u00f1os, no la v\u00eda de 3 a\u00f1os por matrimonio).",
+        faq_cat_process: "Proceso general",
+        faq_q_how_long: "\u00bfCu\u00e1nto tiempo toma el proceso?",
+        faq_a_how_long: "Actualmente de 6 a 12 meses desde la presentaci\u00f3n hasta la ceremonia de juramento, dependiendo de su ubicaci\u00f3n.",
+        faq_q_interview: "\u00bfQu\u00e9 pasa en la entrevista?",
+        faq_a_interview: "Un oficial de USCIS revisar\u00e1 su N-400, evaluar\u00e1 su ingl\u00e9s, har\u00e1 preguntas c\u00edvicas y preguntar\u00e1 sobre sus antecedentes.",
+        faq_q_interpreter: "\u00bfPuedo llevar un int\u00e9rprete?",
+        faq_a_interpreter: "Solo si califica para la exenci\u00f3n del examen de ingl\u00e9s. De lo contrario, la entrevista se realiza en ingl\u00e9s.",
+        resources_subtitle: "Organizaciones y abogados que pueden ayudarle en su camino hacia la ciudadan\u00eda.",
+        resources_disclaimer: "Esta es una lista de demostraci\u00f3n. La informaci\u00f3n de contacto es solo para fines ilustrativos.",
+        elig_disclaimer: "Esta es solo una herramienta informativa y no constituye asesor\u00eda legal. La elegibilidad para la naturalizaci\u00f3n depende de muchos factores. Consulte a un abogado de inmigraci\u00f3n para orientaci\u00f3n personalizada.",
     },
     zh: {
         landing_title: "USCIS \u516C\u6C11\u8003\u8BD5\u51C6\u5907",
@@ -290,6 +421,56 @@
         username_taken: "\u7528\u6237\u540D\u5DF2\u88AB\u4F7F\u7528",
         passwords_no_match: "\u5BC6\u7801\u4E0D\u4E00\u81F4",
         fields_required: "\u6240\u6709\u5B57\u6BB5\u90FD\u662F\u5FC5\u586B\u7684",
+        not_started: "\u672A\u5F00\u59CB",
+        in_progress: "\u8FDB\u884C\u4E2D",
+        of: "/",
+        checked: "\u5DF2\u68C0\u67E5",
+        all_clear: "\u5168\u90E8\u901A\u8FC7\uFF01",
+        save_continue_later: "\u4FDD\u5B58\u5E76\u7A0D\u540E\u7EE7\u7EED",
+        progress_saved_toast: "\u8FDB\u5EA6\u5DF2\u4FDD\u5B58\uFF01\u60A8\u53EF\u4EE5\u968F\u65F6\u7EE7\u7EED\u3002",
+        faq_subtitle: "\u7533\u8BF7\u4EBA\u6700\u5E38\u95EE\u7684\u95EE\u9898\u89E3\u7B54\u3002",
+        faq_cat_money: "\u8D39\u7528",
+        faq_q_cost: "\u7533\u8BF7\u516C\u6C11\u8EAB\u4EFD\u9700\u8981\u591A\u5C11\u94B1\uFF1F",
+        faq_a_cost: "N-400\u7533\u8BF7\u8D39\u4E3A760\u7F8E\u5143\uFF08\u7F51\u4E0A\u7533\u8BF7710\u7F8E\u5143\uFF09\u3002\u4F4E\u6536\u5165\u7533\u8BF7\u4EBA\u53EF\u4F7F\u7528I-912\u8868\u683C\u7533\u8BF7\u8D39\u7528\u8C41\u514D\u3002",
+        faq_q_fee_help: "\u6211\u80FD\u83B7\u5F97\u4ED8\u6B3E\u5E2E\u52A9\u5417\uFF1F",
+        faq_a_fee_help: "\u53EF\u4EE5\u3002\u8BB8\u591A\u975E\u8425\u5229\u7EC4\u7EC7\u63D0\u4F9B\u8D39\u7528\u63F4\u52A9\u3002\u8BF7\u53C2\u89C1\u4E0B\u65B9\u8D44\u6E90\u90E8\u5206\u3002",
+        faq_cat_privacy: "\u9690\u79C1\u4E0E\u5B89\u5168",
+        faq_q_info_shared: "\u6211\u7684\u4FE1\u606F\u4F1A\u88AB\u5206\u4EAB\u5417\uFF1F",
+        faq_a_info_shared: "USCIS\u4F1A\u5BF9\u60A8\u7684\u7533\u8BF7\u4FDD\u5BC6\u3002\u4FE1\u606F\u53D7\u8054\u90A6\u9690\u79C1\u6CD5\u4FDD\u62A4\u3002",
+        faq_q_dv: "\u5982\u679C\u6211\u5904\u4E8E\u5BB6\u5EAD\u66B4\u529B\u60C5\u51B5\uFF0C\u6211\u53EF\u4EE5\u7533\u8BF7\u5417\uFF1F",
+        faq_a_dv: "\u53EF\u4EE5\u3002VAWA\uFF08\u300A\u5BF9\u5987\u5973\u66B4\u529B\u6CD5\u6848\u300B\uFF09\u4FDD\u62A4\u53EF\u80FD\u9002\u7528\u3002\u8BF7\u8054\u7CFB\u6CD5\u5F8B\u63F4\u52A9\u7EC4\u7EC7\u83B7\u53D6\u4FDD\u5BC6\u5E2E\u52A9\u3002",
+        faq_cat_criminal: "\u72AF\u7F6A\u80CC\u666F",
+        faq_q_arrested_dropped: "\u6211\u88AB\u9010\u6355\u4F46\u6307\u63A7\u88AB\u64A4\u9500\u4E86\u3002\u6211\u8FD8\u9700\u8981\u62AB\u9732\u5417\uFF1F",
+        faq_a_arrested_dropped: "\u662F\u7684\u3002\u60A8\u5FC5\u987B\u62AB\u9732\u6240\u6709\u9010\u6355\u3001\u6307\u63A7\u3001\u4F20\u7968\u548C\u62D8\u7559\u2014\u2014\u5373\u4F7F\u5DF2\u88AB\u64A4\u9500\u3001\u6D88\u9664\u6216\u5C01\u5B58\u3002",
+        faq_q_dui: "\u9189\u9A7E\uFF08DUI\uFF09\u4F1A\u963B\u6B62\u6211\u6210\u4E3A\u516C\u6C11\u5417\uFF1F",
+        faq_a_dui: "\u5355\u6B21DUI\u901A\u5E38\u4E0D\u4F1A\u6784\u6210\u969C\u788D\uFF0C\u4F46\u4E24\u6B21\u6216\u66F4\u591A\u6B21\u53EF\u80FD\u4F1A\u3002\u8BF7\u54A8\u8BE2\u79FB\u6C11\u5F8B\u5E08\u3002",
+        faq_q_juvenile: "\u6211\u6709\u672A\u6210\u5E74\u4EBA\u8FDD\u6CD5\u8BB0\u5F55\u3002\u8FD9\u7B97\u5417\uFF1F",
+        faq_a_juvenile: "\u672A\u6210\u5E74\u4EBA\u8FDD\u6CD5\u8BB0\u5F55\u53EF\u80FD\u4ECD\u9700\u8981\u62AB\u9732\u3002\u8BF7\u54A8\u8BE2\u5F8B\u5E08\u83B7\u53D6\u6307\u5BFC\u3002",
+        faq_cat_taxes: "\u7A0E\u52A1",
+        faq_q_missed_taxes: "\u5982\u679C\u6211\u67D0\u4E00\u5E74\u6CA1\u6709\u62A5\u7A0E\u600E\u4E48\u529E\uFF1F",
+        faq_a_missed_taxes: "\u5728\u9762\u8BD5\u524D\u63D0\u4EA4\u7F3A\u5931\u7684\u62A5\u7A0E\u8868\u3002\u5E26\u4E0AIRS\u7A0E\u52A1\u8BB0\u5F55\u4F5C\u4E3A\u8BC1\u660E\u3002",
+        faq_q_tax_docs: "\u6211\u9700\u8981\u5E26\u7A0E\u52A1\u6587\u4EF6\u53BB\u9762\u8BD5\u5417\uFF1F",
+        faq_a_tax_docs: "\u9700\u8981\u3002\u5E26\u4E0A\u8FC7\u53BB3\u52305\u5E74\u7684IRS\u7A0E\u52A1\u8BB0\u5F55\uFF08\u53D6\u51B3\u4E8E\u60A8\u7684\u7533\u8BF7\u8DEF\u5F84\uFF09\u3002",
+        faq_cat_travel: "\u65C5\u884C",
+        faq_q_travel_pending: "\u6211\u7684N-400\u6B63\u5728\u5BA1\u7406\u4E2D\uFF0C\u6211\u53EF\u4EE5\u65C5\u884C\u5417\uFF1F",
+        faq_a_travel_pending: "\u53EF\u4EE5\uFF0C\u4F46\u5BA1\u7406\u671F\u95F4\u7684\u957F\u65F6\u95F4\u65C5\u884C\u53EF\u80FD\u4F1A\u5BFC\u81F4\u95EE\u9898\u3002\u4FDD\u6301\u77ED\u9014\u65C5\u884C\u3002",
+        faq_q_long_trip: "\u6211\u8FDB\u884C\u4E86\u4E00\u6B21\u957F\u9014\u65C5\u884C\u3002\u6211\u7684\u7533\u8BF7\u4F1A\u88AB\u6BC1\u5417\uFF1F",
+        faq_a_long_trip: "\u4E0D\u4E00\u5B9A\u30026\u4E2A\u6708\u4EE5\u5185\u7684\u65C5\u884C\u901A\u5E38\u6CA1\u95EE\u9898\u30026\u523012\u4E2A\u6708\u9700\u8981\u89E3\u91CA\u3002\u8D85\u8FC71\u5E74\u53EF\u80FD\u9700\u8981\u91CD\u65B0\u5F00\u59CB\u3002",
+        faq_cat_green_card: "\u7EFF\u5361\u95EE\u9898",
+        faq_q_expired_gc: "\u6211\u7684\u7EFF\u5361\u8FC7\u671F\u4E86\u3002\u6211\u8FD8\u80FD\u7533\u8BF7\u5417\uFF1F",
+        faq_a_expired_gc: "\u53EF\u4EE5\u3002\u8FC7\u671F\u7684\u7EFF\u5361\u4E0D\u5F71\u54CD\u60A8\u7684\u79FB\u6C11\u8EAB\u4EFD\u3002\u60A8\u53EF\u4EE5\u7528\u8FC7\u671F\u7EFF\u5361\u7533\u8BF7\u3002",
+        faq_q_divorced: "\u6211\u901A\u8FC7\u5A5A\u59FB\u83B7\u5F97\u7EFF\u5361\uFF0C\u4F46\u73B0\u5728\u5DF2\u79BB\u5A5A\u3002\u6211\u8FD8\u80FD\u7533\u8BF7\u5417\uFF1F",
+        faq_a_divorced: "\u5982\u679C\u60A8\u5DF2\u662F\u6C38\u4E45\u5C45\u6C11\u8D855\u5E74\u4EE5\u4E0A\uFF0C\u53EF\u4EE5\uFF08\u4F7F\u7528\u6807\u51C65\u5E74\u8DEF\u5F84\uFF0C\u800C\u975E3\u5E74\u5A5A\u59FB\u8DEF\u5F84\uFF09\u3002",
+        faq_cat_process: "\u4E00\u822C\u6D41\u7A0B",
+        faq_q_how_long: "\u8FD9\u4E2A\u8FC7\u7A0B\u9700\u8981\u591A\u957F\u65F6\u95F4\uFF1F",
+        faq_a_how_long: "\u76EE\u524D\u4ECE\u63D0\u4EA4\u5230\u5BA3\u8A93\u4EEA\u5F0F\u9700\u89816\u523012\u4E2A\u6708\uFF0C\u53D6\u51B3\u4E8E\u60A8\u7684\u4F4D\u7F6E\u3002",
+        faq_q_interview: "\u9762\u8BD5\u4E2D\u4F1A\u53D1\u751F\u4EC0\u4E48\uFF1F",
+        faq_a_interview: "USCIS\u5B98\u5458\u5C06\u5BA1\u67E5\u60A8\u7684N-400\u3001\u6D4B\u8BD5\u60A8\u7684\u82F1\u8BED\u3001\u63D0\u95EE\u516C\u6C11\u77E5\u8BC6\u95EE\u9898\uFF0C\u5E76\u8BE2\u95EE\u60A8\u7684\u80CC\u666F\u3002",
+        faq_q_interpreter: "\u6211\u53EF\u4EE5\u5E26\u53E3\u8BD1\u5458\u5417\uFF1F",
+        faq_a_interpreter: "\u53EA\u6709\u5728\u60A8\u7B26\u5408\u82F1\u8BED\u8003\u8BD5\u8C41\u514D\u6761\u4EF6\u65F6\u624D\u53EF\u4EE5\u3002\u5426\u5219\uFF0C\u9762\u8BD5\u4EE5\u82F1\u8BED\u8FDB\u884C\u3002",
+        resources_subtitle: "\u53EF\u4EE5\u5728\u60A8\u7684\u516C\u6C11\u8EAB\u4EFD\u4E4B\u65C5\u4E2D\u63D0\u4F9B\u5E2E\u52A9\u7684\u7EC4\u7EC7\u548C\u5F8B\u5E08\u3002",
+        resources_disclaimer: "\u8FD9\u662F\u4E00\u4E2A\u6F14\u793A\u5217\u8868\u3002\u8054\u7CFB\u4FE1\u606F\u4EC5\u4F9B\u8BF4\u660E\u4E4B\u7528\u3002",
+        elig_disclaimer: "\u8FD9\u53EA\u662F\u4E00\u4E2A\u4FE1\u606F\u5DE5\u5177\uFF0C\u4E0D\u6784\u6210\u6CD5\u5F8B\u5EFA\u8BAE\u3002\u5F52\u5316\u8D44\u683C\u53D6\u51B3\u4E8E\u8BB8\u591A\u56E0\u7D20\u3002\u8BF7\u54A8\u8BE2\u79FB\u6C11\u5F8B\u5E08\u83B7\u53D6\u4E2A\u6027\u5316\u6307\u5BFC\u3002",
     },
     vi: {
         landing_title: "Luy\u1EC7n thi Qu\u1ED1c t\u1ECBch USCIS",
@@ -365,6 +546,13 @@
         username_taken: "T\u00EAn \u0111\u00E3 \u0111\u01B0\u1EE3c s\u1EED d\u1EE5ng",
         passwords_no_match: "M\u1EADt kh\u1EA9u kh\u00F4ng kh\u1EDBp",
         fields_required: "Vui l\u00F2ng \u0111i\u1EC1n \u0111\u1EA7y \u0111\u1EE7 c\u00E1c tr\u01B0\u1EDDng",
+        not_started: "Ch\u01B0a b\u1EAFt \u0111\u1EA7u",
+        in_progress: "\u0110ang ti\u1EBFn h\u00E0nh",
+        of: "trong",
+        checked: "\u0111\u00E3 ki\u1EC3m tra",
+        all_clear: "T\u1EA5t c\u1EA3 \u0111\u1EA1t!",
+        save_continue_later: "L\u01B0u v\u00E0 ti\u1EBFp t\u1EE5c sau",
+        progress_saved_toast: "Ti\u1EBFn \u0111\u1ED9 \u0111\u00E3 \u0111\u01B0\u1EE3c l\u01B0u! B\u1EA1n c\u00F3 th\u1EC3 ti\u1EBFp t\u1EE5c b\u1EA5t c\u1EE9 l\u00FAc n\u00E0o.",
     },
     ko: {
         landing_title: "USCIS \uC2DC\uBBFC\uAD8C \uC2DC\uD5D8 \uC900\uBE44",
@@ -440,6 +628,13 @@
         username_taken: "\uC774\uBBF8 \uC0AC\uC6A9 \uC911\uC778 \uC0AC\uC6A9\uC790\uBA85\uC785\uB2C8\uB2E4",
         passwords_no_match: "\uBE44\uBC00\uBC88\uD638\uAC00 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
         fields_required: "\uBAA8\uB4E0 \uD544\uB4DC\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
+        not_started: "\uC2DC\uC791 \uC804",
+        in_progress: "\uC9C4\uD589 \uC911",
+        of: "/",
+        checked: "\uD655\uC778\uB428",
+        all_clear: "\uBAA8\uB450 \uD1B5\uACFC!",
+        save_continue_later: "\uC800\uC7A5 \uD6C4 \uB098\uC911\uC5D0 \uACC4\uC18D",
+        progress_saved_toast: "\uC9C4\uD589 \uC0C1\uD669\uC774 \uC800\uC7A5\uB418\uC5C8\uC2B5\uB2C8\uB2E4! \uC5B8\uC81C\uB4E0\uC9C0 \uACC4\uC18D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
     },
     tl: {
         landing_title: "Paghahanda sa Pagsusulit ng Pagkamamamayan ng USCIS",
@@ -515,6 +710,13 @@
         username_taken: "Gamit na ang username",
         passwords_no_match: "Hindi tugma ang mga password",
         fields_required: "Kinakailangan ang lahat ng field",
+        not_started: "Hindi pa nasimulan",
+        in_progress: "Kasalukuyang ginagawa",
+        of: "sa",
+        checked: "nasuri",
+        all_clear: "Lahat Malinaw!",
+        save_continue_later: "I-save at Ipagpatuloy Mamaya",
+        progress_saved_toast: "Na-save ang progreso! Maaari kang magpatuloy anumang oras.",
     },
     ar: {
         landing_title: "\u0627\u0644\u062A\u062D\u0636\u064A\u0631 \u0644\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0645\u0648\u0627\u0637\u0646\u0629 USCIS",
@@ -590,6 +792,13 @@
         username_taken: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0645\u0633\u062A\u062E\u062F\u0645 \u0628\u0627\u0644\u0641\u0639\u0644",
         passwords_no_match: "\u0643\u0644\u0645\u062A\u0627 \u0627\u0644\u0645\u0631\u0648\u0631 \u063A\u064A\u0631 \u0645\u062A\u0637\u0627\u0628\u0642\u062A\u064A\u0646",
         fields_required: "\u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644 \u0645\u0637\u0644\u0648\u0628\u0629",
+        not_started: "\u0644\u0645 \u064A\u0628\u062F\u0623",
+        in_progress: "\u0642\u064A\u062F \u0627\u0644\u062A\u0646\u0641\u064A\u0630",
+        of: "\u0645\u0646",
+        checked: "\u062A\u0645 \u0627\u0644\u062A\u062D\u0642\u0642",
+        all_clear: "\u0643\u0644 \u0634\u064A\u0621 \u0648\u0627\u0636\u062D!",
+        save_continue_later: "\u062D\u0641\u0638 \u0648\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0644\u0627\u062D\u0642\u0627\u064B",
+        progress_saved_toast: "\u062A\u0645 \u062D\u0641\u0638 \u0627\u0644\u062A\u0642\u062F\u0645! \u064A\u0645\u0643\u0646\u0643 \u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0641\u064A \u0623\u064A \u0648\u0642\u062A.",
     },
     fr: {
         landing_title: "Pr\u00e9paration au test de citoyennet\u00e9 USCIS",
@@ -665,6 +874,56 @@
         username_taken: "Nom d'utilisateur d\u00e9j\u00e0 pris",
         passwords_no_match: "Les mots de passe ne correspondent pas",
         fields_required: "Tous les champs sont requis",
+        not_started: "Non commenc\u00e9",
+        in_progress: "En cours",
+        of: "sur",
+        checked: "v\u00e9rifi\u00e9s",
+        all_clear: "Tout est bon\u00a0!",
+        save_continue_later: "Enregistrer et continuer plus tard",
+        progress_saved_toast: "Progr\u00e8s enregistr\u00e9\u00a0! Vous pouvez continuer \u00e0 tout moment.",
+        faq_subtitle: "R\u00e9ponses aux questions les plus fr\u00e9quentes des candidats.",
+        faq_cat_money: "Argent et co\u00fbts",
+        faq_q_cost: "Combien co\u00fbte la demande de citoyennet\u00e9\u00a0?",
+        faq_a_cost: "Les frais de d\u00e9p\u00f4t du N-400 sont de 760\u00a0$ (ou 710\u00a0$ en ligne). Des dispenses sont disponibles pour les demandeurs \u00e0 faible revenu via le formulaire I-912.",
+        faq_q_fee_help: "Puis-je obtenir de l'aide pour payer\u00a0?",
+        faq_a_fee_help: "Oui. De nombreuses organisations \u00e0 but non lucratif offrent une aide financi\u00e8re. Consultez la section ressources ci-dessous.",
+        faq_cat_privacy: "Confidentialit\u00e9 et s\u00e9curit\u00e9",
+        faq_q_info_shared: "Mes informations seront-elles partag\u00e9es\u00a0?",
+        faq_a_info_shared: "L'USCIS garde votre demande confidentielle. Les informations sont prot\u00e9g\u00e9es par les lois f\u00e9d\u00e9rales sur la vie priv\u00e9e.",
+        faq_q_dv: "Puis-je faire une demande si je suis victime de violence domestique\u00a0?",
+        faq_a_dv: "Oui. Les protections VAWA peuvent s'appliquer. Contactez une organisation d'aide juridique pour une assistance confidentielle.",
+        faq_cat_criminal: "Ant\u00e9c\u00e9dents criminels",
+        faq_q_arrested_dropped: "J'ai \u00e9t\u00e9 arr\u00eat\u00e9 mais les charges ont \u00e9t\u00e9 abandonn\u00e9es. Dois-je encore le d\u00e9clarer\u00a0?",
+        faq_a_arrested_dropped: "Oui. Vous devez d\u00e9clarer TOUTES les arrestations, charges, citations et d\u00e9tentions \u2014 m\u00eame si class\u00e9es, effac\u00e9es ou scell\u00e9es.",
+        faq_q_dui: "Un DUI m'emp\u00eachera-t-il de devenir citoyen\u00a0?",
+        faq_a_dui: "Un seul DUI n'est g\u00e9n\u00e9ralement pas un obstacle, mais deux ou plus pourraient l'\u00eatre. Consultez un avocat en immigration.",
+        faq_q_juvenile: "J'ai eu une infraction juv\u00e9nile. Est-ce que \u00e7a compte\u00a0?",
+        faq_a_juvenile: "Les infractions juv\u00e9niles peuvent encore devoir \u00eatre d\u00e9clar\u00e9es. Consultez un avocat.",
+        faq_cat_taxes: "Imp\u00f4ts",
+        faq_q_missed_taxes: "Et si j'ai manqu\u00e9 de d\u00e9clarer mes imp\u00f4ts une ann\u00e9e\u00a0?",
+        faq_a_missed_taxes: "D\u00e9posez la ou les d\u00e9clarations manquantes avant votre entretien. Apportez les relev\u00e9s fiscaux de l'IRS comme preuve.",
+        faq_q_tax_docs: "Dois-je apporter des documents fiscaux \u00e0 mon entretien\u00a0?",
+        faq_a_tax_docs: "Oui. Apportez les relev\u00e9s fiscaux de l'IRS des 3 \u00e0 5 derni\u00e8res ann\u00e9es.",
+        faq_cat_travel: "Voyages",
+        faq_q_travel_pending: "Puis-je voyager pendant que mon N-400 est en cours\u00a0?",
+        faq_a_travel_pending: "Oui, mais les voyages prolong\u00e9s pourraient poser probl\u00e8me. Gardez les voyages courts.",
+        faq_q_long_trip: "J'ai fait un long voyage. Ma demande est-elle compromise\u00a0?",
+        faq_a_long_trip: "Pas n\u00e9cessairement. Les voyages de moins de 6 mois sont g\u00e9n\u00e9ralement acceptables. De 6 \u00e0 12 mois n\u00e9cessitent une explication. Plus d'un an peut n\u00e9cessiter de recommencer.",
+        faq_cat_green_card: "Probl\u00e8mes de carte verte",
+        faq_q_expired_gc: "Ma carte verte a expir\u00e9. Puis-je encore faire une demande\u00a0?",
+        faq_a_expired_gc: "Oui. Une carte verte expir\u00e9e n'affecte pas votre statut d'immigration.",
+        faq_q_divorced: "J'ai obtenu ma carte verte par mariage mais je suis maintenant divorc\u00e9(e). Puis-je faire une demande\u00a0?",
+        faq_a_divorced: "Si vous \u00eates r\u00e9sident permanent depuis 5+ ans, oui (en utilisant la voie standard de 5 ans).",
+        faq_cat_process: "Processus g\u00e9n\u00e9ral",
+        faq_q_how_long: "Combien de temps dure le processus\u00a0?",
+        faq_a_how_long: "Actuellement 6 \u00e0 12 mois du d\u00e9p\u00f4t \u00e0 la c\u00e9r\u00e9monie de serment.",
+        faq_q_interview: "Que se passe-t-il lors de l'entretien\u00a0?",
+        faq_a_interview: "Un agent de l'USCIS examinera votre N-400, testera votre anglais, posera des questions civiques et vous interrogera sur vos ant\u00e9c\u00e9dents.",
+        faq_q_interpreter: "Puis-je amener un interpr\u00e8te\u00a0?",
+        faq_a_interpreter: "Seulement si vous \u00eates dispens\u00e9 du test d'anglais. Sinon, l'entretien se d\u00e9roule en anglais.",
+        resources_subtitle: "Organisations et avocats qui peuvent vous aider dans votre parcours vers la citoyennet\u00e9.",
+        resources_disclaimer: "Ceci est une liste de d\u00e9monstration. Les informations de contact sont \u00e0 titre illustratif.",
+        elig_disclaimer: "Ceci est un outil informatif uniquement et ne constitue pas un avis juridique.",
     },
     pt: {
         landing_title: "Prepara\u00e7\u00e3o para o Teste de Cidadania USCIS",
@@ -740,6 +999,56 @@
         username_taken: "Nome de usu\u00e1rio j\u00e1 existe",
         passwords_no_match: "As senhas n\u00e3o coincidem",
         fields_required: "Todos os campos s\u00e3o obrigat\u00f3rios",
+        not_started: "N\u00e3o iniciado",
+        in_progress: "Em andamento",
+        of: "de",
+        checked: "verificados",
+        all_clear: "Tudo certo!",
+        save_continue_later: "Salvar e continuar depois",
+        progress_saved_toast: "Progresso salvo! Voc\u00ea pode continuar a qualquer momento.",
+        faq_subtitle: "Respostas \u00e0s perguntas mais frequentes dos candidatos.",
+        faq_cat_money: "Dinheiro e custos",
+        faq_q_cost: "Quanto custa solicitar a cidadania?",
+        faq_a_cost: "A taxa do formul\u00e1rio N-400 \u00e9 de US$ 760 (ou US$ 710 online). Isen\u00e7\u00f5es de taxa est\u00e3o dispon\u00edveis para candidatos de baixa renda usando o Formul\u00e1rio I-912.",
+        faq_q_fee_help: "Posso obter ajuda para pagar?",
+        faq_a_fee_help: "Sim. Muitas organiza\u00e7\u00f5es sem fins lucrativos oferecem assist\u00eancia com taxas. Consulte a se\u00e7\u00e3o de recursos abaixo.",
+        faq_cat_privacy: "Privacidade e seguran\u00e7a",
+        faq_q_info_shared: "Minhas informa\u00e7\u00f5es ser\u00e3o compartilhadas?",
+        faq_a_info_shared: "O USCIS mant\u00e9m sua solicita\u00e7\u00e3o confidencial. As informa\u00e7\u00f5es s\u00e3o protegidas pelas leis federais de privacidade.",
+        faq_q_dv: "Posso solicitar se estou em situa\u00e7\u00e3o de viol\u00eancia dom\u00e9stica?",
+        faq_a_dv: "Sim. As prote\u00e7\u00f5es da VAWA podem ser aplic\u00e1veis. Entre em contato com uma organiza\u00e7\u00e3o de assist\u00eancia jur\u00eddica para ajuda confidencial.",
+        faq_cat_criminal: "Antecedentes criminais",
+        faq_q_arrested_dropped: "Fui preso, mas as acusa\u00e7\u00f5es foram retiradas. Ainda preciso declarar?",
+        faq_a_arrested_dropped: "Sim. Voc\u00ea deve declarar TODAS as pris\u00f5es, acusa\u00e7\u00f5es, cita\u00e7\u00f5es e deten\u00e7\u00f5es \u2014 mesmo que arquivadas ou seladas.",
+        faq_q_dui: "Um DUI me impedir\u00e1 de me tornar cidad\u00e3o?",
+        faq_a_dui: "Um \u00fanico DUI geralmente n\u00e3o \u00e9 impedimento, mas dois ou mais podem ser. Consulte um advogado de imigra\u00e7\u00e3o.",
+        faq_q_juvenile: "Tive uma infra\u00e7\u00e3o juvenil. Isso conta?",
+        faq_a_juvenile: "Infra\u00e7\u00f5es juvenis ainda podem precisar ser declaradas. Consulte um advogado.",
+        faq_cat_taxes: "Impostos",
+        faq_q_missed_taxes: "E se eu deixei de declarar impostos por um ano?",
+        faq_a_missed_taxes: "Apresente a(s) declara\u00e7\u00e3o(\u00f5es) faltante(s) antes da sua entrevista. Leve transcri\u00e7\u00f5es fiscais do IRS como prova.",
+        faq_q_tax_docs: "Preciso levar documentos fiscais para minha entrevista?",
+        faq_a_tax_docs: "Sim. Leve transcri\u00e7\u00f5es fiscais do IRS dos \u00faltimos 3 a 5 anos.",
+        faq_cat_travel: "Viagens",
+        faq_q_travel_pending: "Posso viajar enquanto meu N-400 est\u00e1 pendente?",
+        faq_a_travel_pending: "Sim, mas viagens prolongadas podem causar problemas. Mantenha as viagens curtas.",
+        faq_q_long_trip: "Fiz uma viagem longa. Minha solicita\u00e7\u00e3o est\u00e1 comprometida?",
+        faq_a_long_trip: "N\u00e3o necessariamente. Viagens de menos de 6 meses geralmente s\u00e3o aceitas. De 6 a 12 meses precisam de explica\u00e7\u00e3o. Mais de 1 ano pode exigir recome\u00e7ar.",
+        faq_cat_green_card: "Problemas com green card",
+        faq_q_expired_gc: "Meu green card expirou. Ainda posso solicitar?",
+        faq_a_expired_gc: "Sim. Um green card expirado n\u00e3o afeta seu status imigrat\u00f3rio.",
+        faq_q_divorced: "Obtive meu green card por casamento, mas agora estou divorciado(a). Posso solicitar?",
+        faq_a_divorced: "Se voc\u00ea \u00e9 residente permanente h\u00e1 mais de 5 anos, sim (usando a via padr\u00e3o de 5 anos).",
+        faq_cat_process: "Processo geral",
+        faq_q_how_long: "Quanto tempo o processo leva?",
+        faq_a_how_long: "Atualmente de 6 a 12 meses desde o envio at\u00e9 a cerim\u00f4nia de juramento.",
+        faq_q_interview: "O que acontece na entrevista?",
+        faq_a_interview: "Um oficial do USCIS revisar\u00e1 seu N-400, testar\u00e1 seu ingl\u00eas, far\u00e1 perguntas c\u00edvicas e perguntar\u00e1 sobre seus antecedentes.",
+        faq_q_interpreter: "Posso levar um int\u00e9rprete?",
+        faq_a_interpreter: "Somente se voc\u00ea se qualificar para a isen\u00e7\u00e3o do teste de ingl\u00eas. Caso contr\u00e1rio, a entrevista \u00e9 em ingl\u00eas.",
+        resources_subtitle: "Organiza\u00e7\u00f5es e advogados que podem ajudar na sua jornada rumo \u00e0 cidadania.",
+        resources_disclaimer: "Esta \u00e9 uma lista demonstrativa. As informa\u00e7\u00f5es de contato s\u00e3o apenas ilustrativas.",
+        elig_disclaimer: "Esta \u00e9 apenas uma ferramenta informativa e n\u00e3o constitui aconselhamento jur\u00eddico.",
     },
     ru: {
         landing_title: "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u043A \u044D\u043A\u0437\u0430\u043C\u0435\u043D\u0443 \u043D\u0430 \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u043E USCIS",
@@ -815,6 +1124,30 @@
         username_taken: "\u0418\u043C\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F \u0437\u0430\u043D\u044F\u0442\u043E",
         passwords_no_match: "\u041F\u0430\u0440\u043E\u043B\u0438 \u043D\u0435 \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u044E\u0442",
         fields_required: "\u0412\u0441\u0435 \u043F\u043E\u043B\u044F \u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B",
+        not_started: "\u041D\u0435 \u043D\u0430\u0447\u0430\u0442\u043E",
+        in_progress: "\u0412 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u0435",
+        of: "\u0438\u0437",
+        checked: "\u043F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043E",
+        all_clear: "\u0412\u0441\u0451 \u0432 \u043F\u043E\u0440\u044F\u0434\u043A\u0435!",
+        save_continue_later: "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u043F\u043E\u0437\u0436\u0435",
+        progress_saved_toast: "\u041F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D! \u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0432 \u043B\u044E\u0431\u043E\u0435 \u0432\u0440\u0435\u043C\u044F.",
+        faq_subtitle: "\u041E\u0442\u0432\u0435\u0442\u044B \u043D\u0430 \u043D\u0430\u0438\u0431\u043E\u043B\u0435\u0435 \u0447\u0430\u0441\u0442\u044B\u0435 \u0432\u043E\u043F\u0440\u043E\u0441\u044B \u0437\u0430\u044F\u0432\u0438\u0442\u0435\u043B\u0435\u0439.",
+        faq_cat_money: "\u0414\u0435\u043D\u044C\u0433\u0438 \u0438 \u0440\u0430\u0441\u0445\u043E\u0434\u044B",
+        faq_q_cost: "\u0421\u043A\u043E\u043B\u044C\u043A\u043E \u0441\u0442\u043E\u0438\u0442 \u043F\u043E\u0434\u0430\u0442\u044C \u0437\u0430\u044F\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u043E?",
+        faq_a_cost: "\u041F\u043E\u0448\u043B\u0438\u043D\u0430 \u0437\u0430 \u0444\u043E\u0440\u043C\u0443 N-400 \u0441\u043E\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u0442 760 \u0434\u043E\u043B\u043B. (710 \u0434\u043E\u043B\u043B. \u043E\u043D\u043B\u0430\u0439\u043D). \u041E\u0441\u0432\u043E\u0431\u043E\u0436\u0434\u0435\u043D\u0438\u0435 \u043E\u0442 \u043E\u043F\u043B\u0430\u0442\u044B \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u0434\u043B\u044F \u0437\u0430\u044F\u0432\u0438\u0442\u0435\u043B\u0435\u0439 \u0441 \u043D\u0438\u0437\u043A\u0438\u043C \u0434\u043E\u0445\u043E\u0434\u043E\u043C \u043F\u043E \u0444\u043E\u0440\u043C\u0435 I-912.",
+        faq_q_fee_help: "\u041C\u043E\u0433\u0443 \u043B\u0438 \u044F \u043F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u043E\u043C\u043E\u0449\u044C \u0432 \u043E\u043F\u043B\u0430\u0442\u0435?",
+        faq_a_fee_help: "\u0414\u0430. \u041C\u043D\u043E\u0433\u0438\u0435 \u043D\u0435\u043A\u043E\u043C\u043C\u0435\u0440\u0447\u0435\u0441\u043A\u0438\u0435 \u043E\u0440\u0433\u0430\u043D\u0438\u0437\u0430\u0446\u0438\u0438 \u043F\u0440\u0435\u0434\u043E\u0441\u0442\u0430\u0432\u043B\u044F\u044E\u0442 \u0444\u0438\u043D\u0430\u043D\u0441\u043E\u0432\u0443\u044E \u043F\u043E\u043C\u043E\u0449\u044C. \u0421\u043C. \u0440\u0430\u0437\u0434\u0435\u043B \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432 \u043D\u0438\u0436\u0435.",
+        faq_cat_privacy: "\u041A\u043E\u043D\u0444\u0438\u0434\u0435\u043D\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u0438 \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u044C",
+        faq_q_info_shared: "\u0411\u0443\u0434\u0443\u0442 \u043B\u0438 \u043C\u043E\u0438 \u0434\u0430\u043D\u043D\u044B\u0435 \u043F\u0435\u0440\u0435\u0434\u0430\u043D\u044B \u0442\u0440\u0435\u0442\u044C\u0438\u043C \u043B\u0438\u0446\u0430\u043C?",
+        faq_a_info_shared: "USCIS \u0445\u0440\u0430\u043D\u0438\u0442 \u0432\u0430\u0448\u0435 \u0437\u0430\u044F\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0444\u0438\u0434\u0435\u043D\u0446\u0438\u0430\u043B\u044C\u043D\u043E. \u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u0437\u0430\u0449\u0438\u0449\u0435\u043D\u0430 \u0444\u0435\u0434\u0435\u0440\u0430\u043B\u044C\u043D\u044B\u043C\u0438 \u0437\u0430\u043A\u043E\u043D\u0430\u043C\u0438 \u043E \u043A\u043E\u043D\u0444\u0438\u0434\u0435\u043D\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u0438.",
+        faq_cat_criminal: "\u0423\u0433\u043E\u043B\u043E\u0432\u043D\u043E\u0435 \u043F\u0440\u043E\u0448\u043B\u043E\u0435",
+        faq_cat_taxes: "\u041D\u0430\u043B\u043E\u0433\u0438",
+        faq_cat_travel: "\u041F\u043E\u0435\u0437\u0434\u043A\u0438",
+        faq_cat_green_card: "\u0412\u043E\u043F\u0440\u043E\u0441\u044B \u043F\u043E \u0433\u0440\u0438\u043D-\u043A\u0430\u0440\u0442\u0435",
+        faq_cat_process: "\u041E\u0431\u0449\u0438\u0439 \u043F\u0440\u043E\u0446\u0435\u0441\u0441",
+        resources_subtitle: "\u041E\u0440\u0433\u0430\u043D\u0438\u0437\u0430\u0446\u0438\u0438 \u0438 \u0430\u0434\u0432\u043E\u043A\u0430\u0442\u044B, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u043C\u043E\u0433\u0443\u0442 \u043F\u043E\u043C\u043E\u0447\u044C \u043D\u0430 \u043F\u0443\u0442\u0438 \u043A \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u0443.",
+        resources_disclaimer: "\u042D\u0442\u043E \u0434\u0435\u043C\u043E\u043D\u0441\u0442\u0440\u0430\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0441\u043F\u0438\u0441\u043E\u043A. \u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\u0430\u044F \u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043F\u0440\u0438\u0432\u0435\u0434\u0435\u043D\u0430 \u0434\u043B\u044F \u0438\u043B\u043B\u044E\u0441\u0442\u0440\u0430\u0446\u0438\u0438.",
+        elig_disclaimer: "\u042D\u0442\u043E \u0442\u043E\u043B\u044C\u043A\u043E \u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442, \u0430 \u043D\u0435 \u044E\u0440\u0438\u0434\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043A\u043E\u043D\u0441\u0443\u043B\u044C\u0442\u0430\u0446\u0438\u044F.",
     },
     };
 
@@ -977,7 +1310,6 @@
         // Load saved language
         currentLang = GLS.get("lang", "en");
 
-        initDarkMode();
         initVoices();
         initSoundToggle();
         initModals();
@@ -992,27 +1324,6 @@
         } else {
             show($("#landingPage"));
         }
-    }
-
-    // ---- Dark Mode ----
-    function initDarkMode() {
-        const dm = GLS.get("darkMode", false);
-        if (dm) document.documentElement.setAttribute("data-theme", "dark");
-        updateDarkModeIcons();
-        $("#darkModeToggle").addEventListener("click", () => {
-            const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-            if (isDark) document.documentElement.removeAttribute("data-theme");
-            else document.documentElement.setAttribute("data-theme", "dark");
-            GLS.set("darkMode", !isDark);
-            updateDarkModeIcons();
-        });
-    }
-    function updateDarkModeIcons() {
-        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-        const sun = $(".icon-sun");
-        const moon = $(".icon-moon");
-        if (sun) sun.style.display = isDark ? "none" : "";
-        if (moon) moon.style.display = isDark ? "" : "none";
     }
 
     // ---- Voices ----
@@ -1460,8 +1771,16 @@
     }
 
     function getEligibilityStatus() {
-        const results = LS.get("eligibility_results", null);
-        if (!results || !results.length) return { done: false, allGreen: false, greens: 0, yellows: 0, reds: 0, total: 0, unchecked: 11 };
+        // Check completed results first
+        let results = LS.get("eligibility_results", null);
+        // Also check in-progress results for partial completion
+        if (!results || !results.length) {
+            const inprogress = LS.get("elig_inprogress", null);
+            if (inprogress && inprogress.results && inprogress.results.length) {
+                results = inprogress.results;
+            }
+        }
+        if (!results || !results.length) return { done: false, allGreen: false, greens: 0, yellows: 0, reds: 0, total: 11, unchecked: 11, answered: 0 };
         let greens = 0, yellows = 0, reds = 0;
         results.forEach(r => {
             if (r && r.color === "green") greens++;
@@ -1469,7 +1788,7 @@
             else if (r && r.color === "red") reds++;
         });
         const answered = greens + yellows + reds;
-        return { done: answered > 0, allGreen: greens === 11 && yellows === 0 && reds === 0, greens, yellows, reds, total: 11, unchecked: 11 - answered };
+        return { done: answered > 0, allGreen: greens === 11 && yellows === 0 && reds === 0, greens, yellows, reds, total: 11, unchecked: 11 - answered, answered };
     }
 
     function updateCardStatuses() {
@@ -1498,28 +1817,42 @@
         updateEligibilityDonut(eligStatus);
         const eligEl = $("#eligibilityStatus");
         if (eligEl) {
+            const answered = eligStatus.answered || (eligStatus.greens + eligStatus.yellows + eligStatus.reds);
             if (!eligStatus.done) {
-                eligEl.innerHTML = '';
+                eligEl.innerHTML = '<span class="status-text-muted">' + t("not_started") + '</span>';
             } else if (eligStatus.allGreen) {
                 eligEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> ' + t("ready_to_apply") + '</span>';
+            } else if (answered < 11) {
+                eligEl.innerHTML = '<span class="status-text-muted">' + answered + ' ' + t("of") + ' 11 ' + t("checked") + '</span>';
             } else if (eligStatus.reds > 0) {
                 eligEl.innerHTML = '<span class="status-badge status-badge--fail">' + t("issues_found") + '</span>';
             } else {
                 eligEl.innerHTML = '<span class="status-badge status-badge--warn">' + t("needs_attention") + '</span>';
             }
         }
+
+        // Update card action text for resume
+        const eligAction = $("#eligibilityCard .home-card-action");
+        if (eligAction) {
+            const inprogress = LS.get("elig_inprogress", null);
+            if (inprogress && inprogress.step > 0 && inprogress.step < 11) {
+                eligAction.innerHTML = t("resume") + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+            }
+        }
     }
 
     function updateEligibilityDonut(status) {
-        const total = status.total;
+        const total = status.total || 11;
         const circumference = 2 * Math.PI * 34; // ~213.63
         const greenArc = (status.greens / total) * circumference;
         const yellowArc = (status.yellows / total) * circumference;
         const redArc = (status.reds / total) * circumference;
+        const grayArc = (status.unchecked / total) * circumference;
 
         const greenCircle = $(".elig-donut-green");
         const yellowCircle = $(".elig-donut-yellow");
         const redCircle = $(".elig-donut-red");
+        const grayCircle = $(".elig-donut-gray");
         const textEl = $("#eligRingText");
 
         if (!greenCircle) return;
@@ -1538,12 +1871,19 @@
 
         redCircle.style.strokeDasharray = redArc + " " + (circumference - redArc);
         redCircle.style.strokeDashoffset = -offset;
+        offset += redArc;
+
+        if (grayCircle) {
+            grayCircle.style.strokeDasharray = grayArc + " " + (circumference - grayArc);
+            grayCircle.style.strokeDashoffset = -offset;
+        }
 
         if (textEl) {
-            if (status.done) {
-                textEl.textContent = status.greens + "/" + total;
+            const answered = status.answered || (status.greens + status.yellows + status.reds);
+            if (answered > 0) {
+                textEl.textContent = answered + "/" + total;
             } else {
-                textEl.textContent = "";
+                textEl.textContent = "\u2014";
             }
         }
     }
@@ -1820,6 +2160,12 @@
         $("#fcGotWrong").addEventListener("click", () => assessCard(false));
         $("#fcWeakFilter").addEventListener("click", toggleWeakFilter);
         $("#fcCategoryFilter").addEventListener("change", filterFlashcards);
+
+        // Save & Continue button for flash cards
+        const fcActions = $("#panel-flashcards .flashcard-actions");
+        if (fcActions && !fcActions.querySelector(".save-continue-btn")) {
+            fcActions.appendChild(createSaveContinueBtn());
+        }
     }
 
     function filterFlashcards() {
@@ -2145,6 +2491,13 @@
             btn.addEventListener("click", () => selectChoice(btn, c));
             choicesDiv.appendChild(btn);
         });
+
+        // Save & Continue button for practice test
+        const practiceSaveArea = $("#practiceSaveBtnArea");
+        if (practiceSaveArea) {
+            practiceSaveArea.innerHTML = "";
+            practiceSaveArea.appendChild(createSaveContinueBtn());
+        }
 
         // Timer
         if (practiceTimerEnabled) {
@@ -2587,6 +2940,12 @@
             engReadingIndex = 0;
             renderReadingSentence();
         });
+
+        // Save & Continue button for reading
+        const readingSection = $("#engReading");
+        if (readingSection && !readingSection.querySelector(".save-continue-btn")) {
+            readingSection.appendChild(createSaveContinueBtn());
+        }
     }
 
     function renderReadingSentence() {
@@ -2663,6 +3022,12 @@
             renderWritingSentence();
         });
 
+        // Save & Continue button for writing
+        const writingSection = $("#engWriting");
+        if (writingSection && !writingSection.querySelector(".save-continue-btn")) {
+            writingSection.appendChild(createSaveContinueBtn());
+        }
+
         // Enter key submits
         $("#writingInput").addEventListener("keydown", (e) => {
             if (e.key === "Enter") checkWriting();
@@ -2724,6 +3089,12 @@
             engSpeakingIndex = 0;
             renderSpeakingPrompt();
         });
+
+        // Save & Continue button for speaking
+        const speakingSection = $("#engSpeaking");
+        if (speakingSection && !speakingSection.querySelector(".save-continue-btn")) {
+            speakingSection.appendChild(createSaveContinueBtn());
+        }
     }
 
     function renderSpeakingPrompt() {
@@ -3104,9 +3475,6 @@
             }
         }
 
-        if (e.key === "d" || e.key === "D") {
-            $("#darkModeToggle").click();
-        }
     }
 
     // ================================================================
@@ -3126,6 +3494,35 @@
         const clone = el.cloneNode(true);
         el.parentNode.replaceChild(clone, el);
         clone.addEventListener("click", handler);
+    }
+
+    // ================================================================
+    //  SAVE & CONTINUE LATER
+    // ================================================================
+
+    const SAVE_BTN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+
+    function showSaveToast() {
+        const el = $("#saveIndicator");
+        if (!el) return;
+        const span = el.querySelector("span");
+        if (span) span.textContent = t("progress_saved_toast");
+        el.classList.add("visible");
+        clearTimeout(saveFlashTimeout);
+        saveFlashTimeout = setTimeout(() => { el.classList.remove("visible"); if (span) span.textContent = t("saved"); }, 2500);
+    }
+
+    function saveAndGoHome() {
+        showSaveToast();
+        setTimeout(() => goHome(), 400);
+    }
+
+    function createSaveContinueBtn() {
+        const btn = document.createElement("button");
+        btn.className = "save-continue-btn";
+        btn.innerHTML = SAVE_BTN_SVG + ' <span>' + t("save_continue_later") + '</span>';
+        btn.addEventListener("click", (e) => { e.stopPropagation(); saveAndGoHome(); });
+        return btn;
     }
 
     // ================================================================
@@ -3237,8 +3634,13 @@
         });
         html += '</div>';
         html += '<div id="eligResultArea"></div>';
+        html += '<div class="elig-save-area" style="text-align:center;margin-top:16px;"></div>';
         html += '</div></div>';
         content.innerHTML = html;
+
+        // Add save & continue button
+        const eligSaveArea = content.querySelector(".elig-save-area");
+        if (eligSaveArea) eligSaveArea.appendChild(createSaveContinueBtn());
 
         content.querySelectorAll(".elig-option").forEach(btn => {
             btn.addEventListener("click", () => {
@@ -3253,8 +3655,9 @@
                 const area = $("#eligResultArea");
                 area.innerHTML = '<div class="elig-result elig-result--' + opt.color + '">' + opt.msg + '</div>'
                     + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
-                // Store result
+                // Store result and save immediately
                 eligResults[eligStep] = { label: ELIG_LABELS[eligStep], color: opt.color, text: opt.msg };
+                LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale });
                 $("#eligNextBtn").addEventListener("click", () => {
                     eligStep++;
                     LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale });
@@ -3288,7 +3691,7 @@
                     const area = $("#eligResultArea");
                     area.innerHTML = '<div class="elig-result elig-result--green">Selective Service registration is not required for you.</div>'
                         + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
-                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale }); eligRenderStep(); });
                 } else {
                     eligIsMale = true;
                     eligSSPart2();
@@ -3315,7 +3718,7 @@
                     eligResults[6] = { label: "Selective Service", color: "green", text: "Not applicable \u2014 you were not in the US during the required age range." };
                     area2.innerHTML = '<div class="elig-result elig-result--green">Selective Service registration does not apply in your case.</div>'
                         + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
-                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale }); eligRenderStep(); });
                 } else if (btn.dataset.choice === "current") {
                     eligSSPart3Current(area2);
                 } else {
@@ -3346,7 +3749,7 @@
                     area3.innerHTML = '<div class="elig-result elig-result--yellow">You should register now before applying. <a href="https://www.sss.gov" target="_blank" rel="noopener">Register at sss.gov</a></div>'
                         + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
                 }
-                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                $("#eligNextBtn").addEventListener("click", () => { eligStep++; LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale }); eligRenderStep(); });
             });
         });
     }
@@ -3372,7 +3775,7 @@
                     area3.innerHTML = '<div class="elig-result elig-result--yellow">You may need to request a Status Information Letter. This can affect your application. <a href="https://www.sss.gov/verify/sil/" target="_blank" rel="noopener">Request a Status Information Letter</a></div>'
                         + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
                 }
-                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                $("#eligNextBtn").addEventListener("click", () => { eligStep++; LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale }); eligRenderStep(); });
             });
         });
     }
