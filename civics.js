@@ -221,6 +221,18 @@
         take_another: "Take Another Mock Test",
         // Eligibility self-check detail text
         elig_disclaimer: "This is an informational tool only and is not legal advice. Eligibility for naturalization depends on many factors. Consult an immigration attorney for personalized guidance.",
+        share_with_friend: "Share with a Friend",
+        share_tab_sms: "Text Message",
+        share_tab_email: "Email",
+        share_phone_label: "Phone Number",
+        share_email_label: "Email Address",
+        share_language_label: "Message Language",
+        share_send: "Send",
+        share_sending: "Sending...",
+        share_sent: "Message sent!",
+        share_error: "Failed to send. Please try again.",
+        share_email_coming_soon: "Email sharing coming soon. Use text message for now.",
+        share_email_subject: "Free U.S. Citizenship Test Prep",
     },
     es: {
         landing_title: "Preparaci\u00f3n para el Examen de Ciudadan\u00eda USCIS",
@@ -1755,6 +1767,12 @@
 
         // FAQ accordion
         initFaqAccordion();
+
+        // Collapsible sections
+        initCollapsibleSections();
+
+        // Share feature
+        initShare();
     }
 
     // ---- Card Status Indicators ----
@@ -3846,6 +3864,194 @@
         }
 
         $("#eligStartOverBtn").addEventListener("click", eligStartOver);
+    }
+
+    // ================================================================
+    //  COLLAPSIBLE SECTIONS
+    // ================================================================
+    function initCollapsibleSections() {
+        document.querySelectorAll(".collapsible-header").forEach(header => {
+            if (header.dataset.collapsibleBound) return;
+            header.dataset.collapsibleBound = "1";
+            header.addEventListener("click", () => {
+                const section = header.parentElement;
+                const isOpen = section.classList.contains("open");
+                section.classList.toggle("open", !isOpen);
+                header.setAttribute("aria-expanded", !isOpen);
+            });
+        });
+    }
+
+    // ================================================================
+    //  SHARE WITH A FRIEND
+    // ================================================================
+    const SHARE_LINK = "https://jeffreypc1.github.io/civics-test/";
+
+    const SHARE_MESSAGES = {
+        en: "Hi! I found a free tool to help you prepare for the U.S. citizenship test. It includes practice tests for civics, English reading & writing, and an eligibility checker. Try it here: {link}",
+        es: "\u00a1Hola! Encontr\u00e9 una herramienta gratuita para prepararte para el examen de ciudadan\u00eda de EE.UU. Incluye pruebas de pr\u00e1ctica de c\u00edvica, lectura y escritura en ingl\u00e9s, y un verificador de elegibilidad. Pru\u00e9bala aqu\u00ed: {link}",
+        zh: "\u4f60\u597d\uff01\u6211\u627e\u5230\u4e86\u4e00\u4e2a\u514d\u8d39\u5de5\u5177\uff0c\u53ef\u4ee5\u5e2e\u52a9\u4f60\u51c6\u5907\u7f8e\u56fd\u5165\u7c4d\u8003\u8bd5\u3002\u5b83\u5305\u62ec\u516c\u6c11\u5e38\u8bc6\u3001\u82f1\u8bed\u9605\u8bfb\u548c\u5199\u4f5c\u7ec3\u4e60\uff0c\u4ee5\u53ca\u8d44\u683c\u68c0\u67e5\u5de5\u5177\u3002\u8bd5\u8bd5\u770b\uff1a{link}",
+        vi: "Xin ch\u00e0o! M\u00ecnh t\u00ecm \u0111\u01b0\u1ee3c m\u1ed9t c\u00f4ng c\u1ee5 mi\u1ec5n ph\u00ed gi\u00fap b\u1ea1n chu\u1ea9n b\u1ecb cho b\u00e0i thi qu\u1ed1c t\u1ecbch M\u1ef9. C\u00f3 b\u00e0i t\u1eadp v\u1ec1 gi\u00e1o d\u1ee5c c\u00f4ng d\u00e2n, \u0111\u1ecdc-vi\u1ebft ti\u1ebfng Anh v\u00e0 ki\u1ec3m tra \u0111i\u1ec1u ki\u1ec7n. Th\u1eed xem nh\u00e9: {link}",
+        ko: "\uc548\ub155\ud558\uc138\uc694! \ubbf8\uad6d \uc2dc\ubbfc\uad8c \uc2dc\ud5d8 \uc900\ube44\ub97c \ub3c4\uc640\uc8fc\ub294 \ubb34\ub8cc \ub3c4\uad6c\ub97c \ucc3e\uc558\uc5b4\uc694. \uc2dc\ubbfc \uc0c1\uc2dd, \uc601\uc5b4 \uc77d\uae30\u00b7\uc4f0\uae30 \uc5f0\uc2b5, \uc790\uaca9 \ud655\uc778 \uae30\ub2a5\uc774 \ud3ec\ud568\ub418\uc5b4 \uc788\uc5b4\uc694. \uc5ec\uae30\uc11c \ud655\uc778\ud574 \ubcf4\uc138\uc694: {link}",
+        tl: "Kumusta! Nakahanap ako ng libreng tool para makatulong sa paghahanda mo sa U.S. citizenship test. May kasama itong practice tests sa civics, English reading at writing, at eligibility checker. Subukan mo dito: {link}",
+        ar: "\u0645\u0631\u062d\u0628\u0627\u064b! \u0648\u062c\u062f\u062a \u0623\u062f\u0627\u0629 \u0645\u062c\u0627\u0646\u064a\u0629 \u0644\u0645\u0633\u0627\u0639\u062f\u062a\u0643 \u0641\u064a \u0627\u0644\u062a\u062d\u0636\u064a\u0631 \u0644\u0627\u062e\u062a\u0628\u0627\u0631 \u0627\u0644\u062c\u0646\u0633\u064a\u0629 \u0627\u0644\u0623\u0645\u0631\u064a\u0643\u064a\u0629. \u062a\u0634\u0645\u0644 \u0627\u062e\u062a\u0628\u0627\u0631\u0627\u062a \u062a\u062f\u0631\u064a\u0628\u064a\u0629 \u0641\u064a \u0627\u0644\u062a\u0631\u0628\u064a\u0629 \u0627\u0644\u0645\u062f\u0646\u064a\u0629 \u0648\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0648\u0627\u0644\u0643\u062a\u0627\u0628\u0629 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629\u060c \u0648\u0641\u062d\u0635 \u0627\u0644\u0623\u0647\u0644\u064a\u0629. \u062c\u0631\u0628\u0647\u0627 \u0647\u0646\u0627: {link}",
+        fr: "Salut ! J\u2019ai trouv\u00e9 un outil gratuit pour t\u2019aider \u00e0 pr\u00e9parer l\u2019examen de citoyennet\u00e9 am\u00e9ricaine. Il comprend des tests pratiques de civisme, de lecture et d\u2019\u00e9criture en anglais, et un v\u00e9rificateur d\u2019\u00e9ligibilit\u00e9. Essaie-le ici : {link}",
+        pt: "Oi! Encontrei uma ferramenta gratuita para te ajudar a se preparar para o teste de cidadania dos EUA. Inclui testes pr\u00e1ticos de civismo, leitura e escrita em ingl\u00eas, e um verificador de elegibilidade. Experimente aqui: {link}",
+        ru: "\u041f\u0440\u0438\u0432\u0435\u0442! \u042f \u043d\u0430\u0448\u0451\u043b \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439 \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442 \u0434\u043b\u044f \u043f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0438 \u043a \u044d\u043a\u0437\u0430\u043c\u0435\u043d\u0443 \u043d\u0430 \u0433\u0440\u0430\u0436\u0434\u0430\u043d\u0441\u0442\u0432\u043e \u0421\u0428\u0410. \u0412\u043a\u043b\u044e\u0447\u0430\u0435\u0442 \u0442\u0435\u0441\u0442\u044b \u043f\u043e \u0433\u0440\u0430\u0436\u0434\u0430\u043d\u043e\u0432\u0435\u0434\u0435\u043d\u0438\u044e, \u0447\u0442\u0435\u043d\u0438\u044e \u0438 \u043f\u0438\u0441\u044c\u043c\u0443 \u043d\u0430 \u0430\u043d\u0433\u043b\u0438\u0439\u0441\u043a\u043e\u043c, \u0430 \u0442\u0430\u043a\u0436\u0435 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044f \u0442\u0440\u0435\u0431\u043e\u0432\u0430\u043d\u0438\u044f\u043c. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439 \u0437\u0434\u0435\u0441\u044c: {link}",
+    };
+
+    function getShareLink(langCode) {
+        return SHARE_LINK + "?lang=" + langCode;
+    }
+
+    function getShareMessage(langCode) {
+        const msg = SHARE_MESSAGES[langCode] || SHARE_MESSAGES.en;
+        return msg.replace("{link}", getShareLink(langCode));
+    }
+
+    function showShareToast(message, type) {
+        const toast = $("#shareToast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = "share-toast " + type + " visible";
+        setTimeout(() => { toast.classList.remove("visible"); }, 3500);
+    }
+
+    function initShare() {
+        const toggleBtn = $("#shareToggleBtn");
+        const card = $("#shareCard");
+        const tabSms = $("#shareTabSms");
+        const tabEmail = $("#shareTabEmail");
+        const smsForm = $("#shareSmsForm");
+        const emailForm = $("#shareEmailForm");
+        const smsLang = $("#shareSmsLang");
+        const emailLang = $("#shareEmailLang");
+        const smsPreview = $("#shareSmsPreview");
+        const emailPreview = $("#shareEmailPreview");
+        const sendSmsBtn = $("#shareSendSms");
+        const sendEmailBtn = $("#shareSendEmail");
+        const emailNote = $("#shareEmailNote");
+
+        if (!toggleBtn || !card) return;
+
+        // Populate language selects
+        [smsLang, emailLang].forEach(sel => {
+            sel.innerHTML = "";
+            LANGUAGES.forEach(l => {
+                const opt = document.createElement("option");
+                opt.value = l.code;
+                opt.textContent = l.flag + " " + l.name;
+                if (l.code === currentLang) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        });
+
+        function updatePreviews() {
+            if (smsPreview) smsPreview.textContent = getShareMessage(smsLang.value);
+            if (emailPreview) emailPreview.textContent = getShareMessage(emailLang.value);
+        }
+        updatePreviews();
+
+        smsLang.addEventListener("change", updatePreviews);
+        emailLang.addEventListener("change", updatePreviews);
+
+        // Toggle card
+        toggleBtn.addEventListener("click", () => {
+            if (card.style.display === "none") {
+                card.style.display = "";
+                updatePreviews();
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        // Tabs
+        tabSms.addEventListener("click", () => {
+            tabSms.classList.add("active");
+            tabEmail.classList.remove("active");
+            smsForm.style.display = "";
+            emailForm.style.display = "none";
+        });
+        tabEmail.addEventListener("click", () => {
+            tabEmail.classList.add("active");
+            tabSms.classList.remove("active");
+            emailForm.style.display = "";
+            smsForm.style.display = "none";
+        });
+
+        // Send SMS
+        sendSmsBtn.addEventListener("click", async () => {
+            const phone = $("#sharePhone").value.trim();
+            if (!phone) { showShareToast("Please enter a phone number.", "error"); return; }
+            sendSmsBtn.disabled = true;
+            sendSmsBtn.innerHTML = '<span class="spinner"></span> ' + t("share_sending");
+            try {
+                const res = await fetch("/civics/share/sms", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: phone, message: getShareMessage(smsLang.value) }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    showShareToast(t("share_sent"), "success");
+                    $("#sharePhone").value = "";
+                } else {
+                    showShareToast(data.error || t("share_error"), "error");
+                }
+            } catch (e) {
+                showShareToast(t("share_error"), "error");
+            }
+            sendSmsBtn.disabled = false;
+            sendSmsBtn.textContent = t("share_send");
+        });
+
+        // Send Email
+        sendEmailBtn.addEventListener("click", async () => {
+            const email = $("#shareEmail").value.trim();
+            if (!email) { showShareToast("Please enter an email address.", "error"); return; }
+            sendEmailBtn.disabled = true;
+            sendEmailBtn.innerHTML = '<span class="spinner"></span> ' + t("share_sending");
+            try {
+                const res = await fetch("/civics/share/email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: email,
+                        subject: t("share_email_subject"),
+                        body: getShareMessage(emailLang.value),
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    showShareToast(t("share_sent"), "success");
+                    $("#shareEmail").value = "";
+                } else if (data.error === "Email not configured") {
+                    emailNote.style.display = "";
+                    showShareToast(t("share_email_coming_soon"), "error");
+                } else {
+                    showShareToast(data.error || t("share_error"), "error");
+                }
+            } catch (e) {
+                showShareToast(t("share_error"), "error");
+            }
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.textContent = t("share_send");
+        });
+
+        // Check email config availability on first email tab click
+        tabEmail.addEventListener("click", async () => {
+            try {
+                const res = await fetch("/civics/share/email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "", body: "" }),
+                });
+                const data = await res.json();
+                if (data.error === "Email not configured") {
+                    emailNote.style.display = "";
+                }
+            } catch {}
+        }, { once: true });
     }
 
     // ================================================================

@@ -1163,9 +1163,6 @@ body {
 .progress-checklist-item--done .progress-checklist-status { color: var(--success); }
 
 /* ---- FAQ Section ---- */
-.faq-section {
-    margin-top: 32px; margin-bottom: 32px;
-}
 .faq-section-title {
     font-size: 1.5rem; font-weight: 800;
     letter-spacing: -0.01em; margin-bottom: 6px;
@@ -1220,9 +1217,6 @@ body {
 }
 
 /* ---- Resources Section ---- */
-.resources-section {
-    margin-bottom: 32px;
-}
 .resources-section-title {
     font-size: 1.5rem; font-weight: 800;
     letter-spacing: -0.01em; margin-bottom: 6px;
@@ -1335,7 +1329,7 @@ body {
     .progress-checklist-item { flex-wrap: wrap; }
     .progress-checklist-status { margin-left: 30px; width: 100%; text-align: left; }
     .resources-grid { grid-template-columns: 1fr; }
-    .faq-section-title, .resources-section-title { font-size: 1.25rem; }
+    .faq-section-title, .resources-section-title, .collapsible-title { font-size: 1.25rem; }
 }
 
 /* Touch targets */
@@ -1399,13 +1393,30 @@ body {
     text-align: center; color: #fff;
     padding: 20px; max-width: 500px;
 }
-.landing-illustration {
-    margin-bottom: 24px;
-    animation: landingFloat 4s ease-in-out infinite;
+/* Statue of Liberty watermark */
+.landing-page::after {
+    content: "";
+    position: absolute;
+    right: -2%;
+    bottom: 5%;
+    width: 40vw;
+    height: 70vh;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 900' fill='white'%3E%3Cpath d='M200 20l-8 35-6-20-7 25-6-18-8 22-5-15-9 20 3 12h52l3-12-9-20-5 15-8-22-6 18-7-25-6 20-8-35zm-20 65c-8 5-14 14-14 25 0 2 0 4 1 6l-2 0c0 0-2 18 3 28l2 5-20 45-30 15 8 6 25-12 5 15-8 55-3 30c-10 8-22 25-30 50l-5 20-12 60-18 95-15 100-8 80-3 55 0 40h30l5-50 8-75 10-80 12-70 8-50 5-25 3 30-2 55-5 70-3 60 0 45-2 90h35l3-85 2-65 5-80 3-55-2-50-3-25 8 35 12 65 8 50 10 75 5 60 3 35h30l-2-40-5-60-10-80-12-75-15-85-10-55-5-22c-8-25-20-42-30-50l-3-30-8-55 5-15 25 12 8-6-30-15-20-45 2-5c5-10 3-28 3-28l-2 0c1-2 1-4 1-6 0-11-6-20-14-25z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center bottom;
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
 }
-@keyframes landingFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+@media (max-width: 640px) {
+    .landing-page::after {
+        width: 50vw;
+        height: 50vh;
+        opacity: 0.06;
+        right: -5%;
+        bottom: 10%;
+    }
 }
 .landing-title {
     font-size: 2.4rem; font-weight: 800;
@@ -1543,6 +1554,178 @@ body {
 }
 .save-indicator.visible {
     opacity: 1; transform: translateY(0);
+}
+
+/* ---- Collapsible Sections ---- */
+.collapsible-section {
+    margin-top: 32px; margin-bottom: 32px;
+}
+.collapsible-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 16px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-card);
+    cursor: pointer; font-family: inherit;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.collapsible-header:hover {
+    background: var(--primary-lighter);
+    border-color: var(--primary-light);
+}
+.collapsible-title {
+    font-size: 1.5rem; font-weight: 800;
+    letter-spacing: -0.01em; margin: 0;
+}
+.collapsible-chevron {
+    flex-shrink: 0; display: flex; align-items: center;
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+}
+.collapsible-section.open .collapsible-chevron {
+    transform: rotate(180deg);
+}
+.collapsible-section.open .collapsible-header {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+.collapsible-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+    padding: 0 20px;
+    background: var(--bg-card);
+}
+.collapsible-section.open .collapsible-body {
+    max-height: 3000px;
+    padding: 16px 20px 20px;
+}
+
+/* ---- Share Section ---- */
+.share-section {
+    margin-top: 24px; margin-bottom: 8px;
+    text-align: center;
+}
+.share-toggle-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px;
+    border-radius: 50px;
+    border: 2px solid var(--primary);
+    background: var(--primary-lighter);
+    color: var(--primary);
+    font-size: 0.95rem; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.share-toggle-btn:hover {
+    background: var(--primary);
+    color: #fff;
+}
+.share-card {
+    max-width: 480px; margin: 16px auto 0;
+    text-align: left; padding: 0;
+    overflow: hidden;
+}
+.share-tabs {
+    display: flex; border-bottom: 1px solid var(--border-color);
+}
+.share-tab {
+    flex: 1; padding: 12px 16px;
+    border: none; background: none;
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer; font-family: inherit;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+    border-bottom: 2px solid transparent;
+}
+.share-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+.share-tab:hover { color: var(--primary); }
+.share-form { padding: 20px; }
+.share-field { margin-bottom: 14px; }
+.share-field label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    margin-bottom: 6px; color: var(--text-primary);
+}
+.share-field input,
+.share-lang-select {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xs);
+    font-size: 0.9rem; font-family: inherit;
+    background: var(--bg-page); color: var(--text-primary);
+    transition: border-color var(--transition-fast);
+}
+.share-field input:focus,
+.share-lang-select:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.share-preview {
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xs);
+    padding: 14px; margin-bottom: 14px;
+    font-size: 0.85rem; line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-wrap; max-height: 150px;
+    overflow-y: auto;
+}
+.share-email-note {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-light);
+    border-radius: var(--border-radius-xs);
+    padding: 12px; margin-bottom: 14px;
+    font-size: 0.85rem; color: var(--text-secondary);
+    text-align: center;
+}
+.share-send-btn {
+    width: 100%; padding: 12px;
+    border: none; border-radius: var(--border-radius-xs);
+    background: var(--primary); color: #fff;
+    font-size: 0.95rem; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: background var(--transition-fast);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.share-send-btn:hover { background: var(--primary-dark); }
+.share-send-btn:disabled {
+    opacity: 0.6; cursor: not-allowed;
+}
+.share-send-btn .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Share Toast ---- */
+.share-toast {
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    padding: 12px 24px;
+    border-radius: var(--border-radius-xs);
+    font-size: 0.9rem; font-weight: 600;
+    z-index: 9999; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.share-toast.visible {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+}
+.share-toast.success {
+    background: var(--success-bg); color: var(--success);
+    border: 1px solid var(--success);
+}
+.share-toast.error {
+    background: var(--error-bg); color: var(--error);
+    border: 1px solid var(--error);
 }
 
 /* ============================================================

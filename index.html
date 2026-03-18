@@ -19,6 +19,9 @@
         <span data-i18n="saved">Saved</span>
     </div>
 
+    <!-- Share toast -->
+    <div id="shareToast" class="share-toast" aria-live="polite"></div>
+
     <!-- ========== LANDING PAGE ========== -->
     <div id="landingPage" class="landing-page">
         <div class="landing-bg">
@@ -33,30 +36,6 @@
             <div class="lang-dropdown" id="landingLangDropdown" style="display:none;"></div>
         </div>
         <div class="landing-content">
-            <!-- Statue of Liberty SVG illustration -->
-            <div class="landing-illustration">
-                <svg viewBox="0 0 200 260" width="160" height="208" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <defs><linearGradient id="libertyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.3"/></linearGradient></defs>
-                    <!-- Base/pedestal -->
-                    <rect x="60" y="210" width="80" height="40" rx="4" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-                    <rect x="70" y="200" width="60" height="16" rx="3" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-                    <!-- Body/robe -->
-                    <path d="M100 200 L80 200 Q75 160 82 120 L100 80 L118 120 Q125 160 120 200 Z" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
-                    <!-- Head -->
-                    <circle cx="100" cy="68" r="14" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
-                    <!-- Crown -->
-                    <path d="M86 62 L90 45 L94 58 L97 40 L100 55 L103 38 L106 55 L110 42 L114 62" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Torch arm -->
-                    <path d="M118 120 L140 50 L142 45" stroke="rgba(255,255,255,0.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <!-- Torch flame -->
-                    <ellipse cx="142" cy="36" rx="8" ry="12" fill="#fbbf24" opacity="0.6"/>
-                    <ellipse cx="142" cy="38" rx="5" ry="8" fill="#f59e0b" opacity="0.5"/>
-                    <!-- Tablet arm -->
-                    <path d="M82 120 L65 140" stroke="rgba(255,255,255,0.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <!-- Tablet -->
-                    <rect x="55" y="135" width="16" height="24" rx="2" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1" transform="rotate(-10 63 147)"/>
-                </svg>
-            </div>
             <h1 class="landing-title" data-i18n="landing_title">USCIS Citizenship Test Prep</h1>
             <p class="landing-subtitle" data-i18n="landing_subtitle">Free practice tests for the civics and English portions of the naturalization exam</p>
             <div class="landing-ctas">
@@ -314,9 +293,52 @@
                 <div class="quick-stats-grid" id="quickStatsGrid"></div>
             </div>
 
-            <!-- FAQ Section -->
-            <div class="faq-section" id="faqSection">
-                <h2 class="faq-section-title" data-i18n="common_questions">Common Questions &amp; Concerns</h2>
+            <!-- Share with a Friend -->
+            <div class="share-section" id="shareSection">
+                <button class="share-toggle-btn" id="shareToggleBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span data-i18n="share_with_friend">Share with a Friend</span>
+                </button>
+                <div class="share-card glass-card" id="shareCard" style="display:none;">
+                    <div class="share-tabs">
+                        <button class="share-tab active" id="shareTabSms" data-i18n="share_tab_sms">Text Message</button>
+                        <button class="share-tab" id="shareTabEmail" data-i18n="share_tab_email">Email</button>
+                    </div>
+                    <div class="share-form" id="shareSmsForm">
+                        <div class="share-field">
+                            <label for="sharePhone" data-i18n="share_phone_label">Phone Number</label>
+                            <input type="tel" id="sharePhone" placeholder="+1 (555) 123-4567" autocomplete="tel">
+                        </div>
+                        <div class="share-field">
+                            <label for="shareSmsLang" data-i18n="share_language_label">Message Language</label>
+                            <select id="shareSmsLang" class="share-lang-select"></select>
+                        </div>
+                        <div class="share-preview" id="shareSmsPreview"></div>
+                        <button class="share-send-btn" id="shareSendSms" data-i18n="share_send">Send</button>
+                    </div>
+                    <div class="share-form" id="shareEmailForm" style="display:none;">
+                        <div class="share-field">
+                            <label for="shareEmail" data-i18n="share_email_label">Email Address</label>
+                            <input type="email" id="shareEmail" placeholder="friend@example.com" autocomplete="email">
+                        </div>
+                        <div class="share-field">
+                            <label for="shareEmailLang" data-i18n="share_language_label">Message Language</label>
+                            <select id="shareEmailLang" class="share-lang-select"></select>
+                        </div>
+                        <div class="share-preview" id="shareEmailPreview"></div>
+                        <div class="share-email-note" id="shareEmailNote" style="display:none;" data-i18n="share_email_coming_soon">Email sharing coming soon. Use text message for now.</div>
+                        <button class="share-send-btn" id="shareSendEmail" data-i18n="share_send">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section (collapsible) -->
+            <div class="collapsible-section" id="faqSection">
+                <button class="collapsible-header" id="faqToggle" aria-expanded="false">
+                    <h2 class="collapsible-title" data-i18n="common_questions">Common Questions &amp; Concerns</h2>
+                    <span class="collapsible-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="collapsible-body" id="faqBody">
                 <p class="faq-section-subtitle" data-i18n="faq_subtitle">Answers to the questions applicants ask most often.</p>
 
                 <div class="faq-category">
@@ -410,11 +432,16 @@
                         <div class="faq-answer"><p data-i18n="faq_a_interpreter">Only if you qualify for the English test exemption. Otherwise, the interview is conducted in English.</p></div>
                     </div>
                 </div>
+                </div>
             </div>
 
-            <!-- Resources Section -->
-            <div class="resources-section" id="resourcesSection">
-                <h2 class="resources-section-title" data-i18n="find_help">Find Help Near You</h2>
+            <!-- Resources Section (collapsible) -->
+            <div class="collapsible-section" id="resourcesSection">
+                <button class="collapsible-header" id="resourcesToggle" aria-expanded="false">
+                    <h2 class="collapsible-title" data-i18n="find_help">Find Help Near You</h2>
+                    <span class="collapsible-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="collapsible-body" id="resourcesBody">
                 <p class="resources-section-subtitle" data-i18n="resources_subtitle">Organizations and attorneys who can help with your citizenship journey.</p>
 
                 <h3 class="resources-group-title"><span class="resource-badge resource-badge--nonprofit">Non-Profit</span> Legal Aid</h3>
@@ -466,6 +493,7 @@
                 </div>
 
                 <p class="resources-disclaimer" data-i18n="resources_disclaimer">This is a demo list. Contact information is for illustration purposes.</p>
+                </div>
             </div>
         </div>
     </main>
