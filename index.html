@@ -22,25 +22,10 @@
     <!-- Share toast -->
     <div id="shareToast" class="share-toast" aria-live="polite"></div>
 
-    <!-- ========== LANDING PAGE ========== -->
-    <div id="landingPage" class="landing-page">
-        <div class="landing-bg">
-            <div class="hero-pattern"></div>
-        </div>
-        <!-- Language selector on landing -->
+    <!-- Hidden landing (kept for language dropdown reference) -->
+    <div id="landingPage" style="display:none;">
         <div class="landing-lang">
-            <button class="lang-btn" id="landingLangBtn" aria-label="Select language">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span id="landingLangLabel">English</span>
-            </button>
             <div class="lang-dropdown" id="landingLangDropdown" style="display:none;"></div>
-        </div>
-        <div class="landing-content">
-            <h1 class="landing-title" data-i18n="landing_title">USCIS Citizenship Test Prep</h1>
-            <p class="landing-subtitle" data-i18n="landing_subtitle">Free practice tests for the civics and English portions of the naturalization exam</p>
-            <div class="landing-ctas">
-                <button class="landing-btn landing-btn--primary" id="landingGuestBtn" data-i18n="get_started">Get Started</button>
-            </div>
         </div>
     </div>
 
@@ -253,6 +238,10 @@
                     </div>
                     <div class="share-form" id="shareSmsForm">
                         <div class="share-field">
+                            <label for="shareSmsName" data-i18n="share_your_name">Your Name</label>
+                            <input type="text" id="shareSmsName" placeholder="Your name" autocomplete="given-name">
+                        </div>
+                        <div class="share-field">
                             <label for="sharePhone" data-i18n="share_phone_label">Phone Number</label>
                             <input type="tel" id="sharePhone" placeholder="+1 (555) 123-4567" autocomplete="tel">
                         </div>
@@ -264,6 +253,10 @@
                         <button class="share-send-btn" id="shareSendSms" data-i18n="share_send">Send</button>
                     </div>
                     <div class="share-form" id="shareEmailForm" style="display:none;">
+                        <div class="share-field">
+                            <label for="shareEmailName" data-i18n="share_your_name">Your Name</label>
+                            <input type="text" id="shareEmailName" placeholder="Your name" autocomplete="given-name">
+                        </div>
                         <div class="share-field">
                             <label for="shareEmail" data-i18n="share_email_label">Email Address</label>
                             <input type="email" id="shareEmail" placeholder="friend@example.com" autocomplete="email">
