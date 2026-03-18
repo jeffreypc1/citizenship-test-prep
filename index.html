@@ -13,8 +13,103 @@
     <!-- Confetti overlay -->
     <div id="confettiOverlay" class="confetti-overlay" aria-hidden="true"></div>
 
+    <!-- Save indicator toast -->
+    <div id="saveIndicator" class="save-indicator" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span data-i18n="saved">Saved</span>
+    </div>
+
+    <!-- ========== LANDING PAGE ========== -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-bg">
+            <div class="hero-pattern"></div>
+        </div>
+        <!-- Language selector on landing -->
+        <div class="landing-lang">
+            <button class="lang-btn" id="landingLangBtn" aria-label="Select language">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span id="landingLangLabel">English</span>
+            </button>
+            <div class="lang-dropdown" id="landingLangDropdown" style="display:none;"></div>
+        </div>
+        <div class="landing-content">
+            <!-- Statue of Liberty SVG illustration -->
+            <div class="landing-illustration">
+                <svg viewBox="0 0 200 260" width="160" height="208" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs><linearGradient id="libertyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.3"/></linearGradient></defs>
+                    <!-- Base/pedestal -->
+                    <rect x="60" y="210" width="80" height="40" rx="4" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <rect x="70" y="200" width="60" height="16" rx="3" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <!-- Body/robe -->
+                    <path d="M100 200 L80 200 Q75 160 82 120 L100 80 L118 120 Q125 160 120 200 Z" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+                    <!-- Head -->
+                    <circle cx="100" cy="68" r="14" fill="url(#libertyGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+                    <!-- Crown -->
+                    <path d="M86 62 L90 45 L94 58 L97 40 L100 55 L103 38 L106 55 L110 42 L114 62" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Torch arm -->
+                    <path d="M118 120 L140 50 L142 45" stroke="rgba(255,255,255,0.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- Torch flame -->
+                    <ellipse cx="142" cy="36" rx="8" ry="12" fill="#fbbf24" opacity="0.6"/>
+                    <ellipse cx="142" cy="38" rx="5" ry="8" fill="#f59e0b" opacity="0.5"/>
+                    <!-- Tablet arm -->
+                    <path d="M82 120 L65 140" stroke="rgba(255,255,255,0.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- Tablet -->
+                    <rect x="55" y="135" width="16" height="24" rx="2" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1" transform="rotate(-10 63 147)"/>
+                </svg>
+            </div>
+            <h1 class="landing-title" data-i18n="landing_title">USCIS Citizenship Test Prep</h1>
+            <p class="landing-subtitle" data-i18n="landing_subtitle">Free practice tests for the civics and English portions of the naturalization exam</p>
+            <div class="landing-ctas">
+                <button class="landing-btn landing-btn--primary" id="landingSignInBtn" data-i18n="sign_in">Sign In</button>
+                <button class="landing-btn landing-btn--outline" id="landingGuestBtn" data-i18n="continue_guest">Continue as Guest</button>
+            </div>
+
+            <!-- Auth form (hidden by default) -->
+            <div class="auth-card" id="authCard" style="display:none;">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="authTabSignIn" data-i18n="sign_in">Sign In</button>
+                    <button class="auth-tab" id="authTabCreate" data-i18n="create_account">Create Account</button>
+                </div>
+                <!-- Sign In Form -->
+                <div class="auth-form" id="authSignInForm">
+                    <div class="auth-field">
+                        <label for="authSignInUser" data-i18n="username">Username</label>
+                        <input type="text" id="authSignInUser" autocomplete="username" spellcheck="false">
+                    </div>
+                    <div class="auth-field">
+                        <label for="authSignInPass" data-i18n="password">Password</label>
+                        <input type="password" id="authSignInPass" autocomplete="current-password">
+                    </div>
+                    <div class="auth-error" id="authSignInError"></div>
+                    <button class="landing-btn landing-btn--primary auth-submit" id="authSignInSubmit" data-i18n="sign_in">Sign In</button>
+                </div>
+                <!-- Create Account Form -->
+                <div class="auth-form" id="authCreateForm" style="display:none;">
+                    <div class="auth-field">
+                        <label for="authCreateDisplay" data-i18n="display_name">Display Name</label>
+                        <input type="text" id="authCreateDisplay" autocomplete="name" spellcheck="false">
+                    </div>
+                    <div class="auth-field">
+                        <label for="authCreateUser" data-i18n="username">Username</label>
+                        <input type="text" id="authCreateUser" autocomplete="username" spellcheck="false">
+                    </div>
+                    <div class="auth-field">
+                        <label for="authCreatePass" data-i18n="password">Password</label>
+                        <input type="password" id="authCreatePass" autocomplete="new-password">
+                    </div>
+                    <div class="auth-field">
+                        <label for="authCreateConfirm" data-i18n="confirm_password">Confirm Password</label>
+                        <input type="password" id="authCreateConfirm" autocomplete="new-password">
+                    </div>
+                    <div class="auth-error" id="authCreateError"></div>
+                    <button class="landing-btn landing-btn--primary auth-submit" id="authCreateSubmit" data-i18n="create_account">Create Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
-    <header class="header" role="banner">
+    <header class="header" role="banner" id="mainHeader" style="display:none;">
         <div class="header-inner">
             <div class="brand" id="brandHome" role="button" tabindex="0" aria-label="Go to home screen">
                 <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -26,6 +121,24 @@
                 </div>
             </div>
             <div class="header-actions">
+                <!-- Language selector in header -->
+                <div class="header-lang-wrapper">
+                    <button class="icon-btn" id="headerLangBtn" aria-label="Select language" title="Language">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </button>
+                    <div class="lang-dropdown" id="headerLangDropdown" style="display:none;"></div>
+                </div>
+                <!-- User menu -->
+                <div class="user-menu-wrapper">
+                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User menu" title="User menu">
+                        <span class="user-avatar-initial" id="userAvatarInitial">G</span>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown" style="display:none;">
+                        <div class="user-dropdown-name" id="userDropdownName">Guest</div>
+                        <button class="user-dropdown-item" id="userSwitchBtn" data-i18n="switch_user">Switch User</button>
+                        <button class="user-dropdown-item" id="userSignOutBtn" data-i18n="sign_out">Sign Out</button>
+                    </div>
+                </div>
                 <button class="icon-btn" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
                     <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -38,7 +151,7 @@
                 </button>
                 <button class="back-btn" id="backBtn" aria-label="Go back" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span>Back</span>
+                    <span data-i18n="back">Back</span>
                 </button>
             </div>
         </div>
@@ -110,12 +223,12 @@
     </div>
 
     <!-- ========== HOME SCREEN ========== -->
-    <main id="homeScreen" class="home-screen" role="main">
+    <main id="homeScreen" class="home-screen" role="main" style="display:none;">
         <!-- Hero -->
         <div class="hero">
             <div class="hero-pattern"></div>
             <div class="hero-content">
-                <h1 class="hero-title">Prepare for Your<br><span class="gradient-text">Citizenship Test</span></h1>
+                <h1 class="hero-title" data-i18n-html="hero_title">Prepare for Your<br><span class="gradient-text">Citizenship Test</span></h1>
                 <p class="hero-quote" id="heroQuote"></p>
             </div>
         </div>
@@ -127,11 +240,11 @@
                     <div class="streak-flame" id="streakFlame">&#128293;</div>
                     <div class="streak-info">
                         <div class="streak-count" id="homeStreakCount">0</div>
-                        <div class="streak-label">Day Streak</div>
+                        <div class="streak-label" data-i18n="day_streak">Day Streak</div>
                     </div>
                 </div>
                 <div class="achievements-card glass-card" id="achievementsCard">
-                    <div class="achievements-title">Achievements</div>
+                    <div class="achievements-title" data-i18n="achievements">Achievements</div>
                     <div class="achievements-badges" id="achievementsBadges"></div>
                 </div>
             </div>
@@ -142,7 +255,7 @@
                     <div class="home-card-icon">
                         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48"><path d="M8 6h32v36H8z" rx="3"/><path d="M14 14h20M14 22h20M14 30h12"/><circle cx="36" cy="36" r="8" fill="var(--primary)" stroke="none" opacity="0.15"/><path d="M33 36l2 2 4-4" stroke="var(--primary)" stroke-width="2.5"/></svg>
                     </div>
-                    <h2 class="home-card-title">Civics Test</h2>
+                    <h2 class="home-card-title" data-i18n="civics_test">Civics Test</h2>
                     <p class="home-card-desc">Study the 100 or 128 civics questions for the naturalization interview.</p>
                     <div class="home-card-progress" id="civicsProgress">
                         <svg class="progress-ring-svg" viewBox="0 0 80 80">
@@ -159,7 +272,7 @@
                     <div class="home-card-icon">
                         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48"><path d="M6 10h16v28H6z" rx="2"/><path d="M26 10h16v28H26z" rx="2"/><path d="M12 18h4M12 24h4M12 30h4M32 18h4M32 24h4M32 30h4"/><circle cx="36" cy="8" r="6" fill="var(--secondary)" stroke="none" opacity="0.15"/><path d="M33.5 8l1.5 1.5 3-3" stroke="var(--secondary)" stroke-width="2"/></svg>
                     </div>
-                    <h2 class="home-card-title">English Test</h2>
+                    <h2 class="home-card-title" data-i18n="english_test">English Test</h2>
                     <p class="home-card-desc">Practice reading, writing, and speaking for the English portion of the test.</p>
                     <div class="home-card-progress" id="englishProgress">
                         <svg class="progress-ring-svg" viewBox="0 0 80 80">
@@ -180,7 +293,7 @@
                             <polyline points="16 24 22 30 32 18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <h2 class="home-card-title">Eligibility Check</h2>
+                    <h2 class="home-card-title" data-i18n="eligibility_check">Eligibility Check</h2>
                     <p class="home-card-desc">See if you may be ready to apply for U.S. citizenship.</p>
                     <div class="home-card-progress" id="eligibilityProgress">
                         <svg class="elig-donut-svg" viewBox="0 0 80 80" id="eligDonut">
@@ -201,13 +314,13 @@
 
             <!-- Quick Stats -->
             <div class="quick-stats glass-card" id="quickStats">
-                <h3 class="quick-stats-title">Your Progress</h3>
+                <h3 class="quick-stats-title" data-i18n="your_progress">Your Progress</h3>
                 <div class="quick-stats-grid" id="quickStatsGrid"></div>
             </div>
 
             <!-- FAQ Section -->
             <div class="faq-section" id="faqSection">
-                <h2 class="faq-section-title">Common Questions &amp; Concerns</h2>
+                <h2 class="faq-section-title" data-i18n="common_questions">Common Questions &amp; Concerns</h2>
                 <p class="faq-section-subtitle">Answers to the questions applicants ask most often.</p>
 
                 <div class="faq-category">
@@ -305,7 +418,7 @@
 
             <!-- Resources Section -->
             <div class="resources-section" id="resourcesSection">
-                <h2 class="resources-section-title">Find Help Near You</h2>
+                <h2 class="resources-section-title" data-i18n="find_help">Find Help Near You</h2>
                 <p class="resources-section-subtitle">Organizations and attorneys who can help with your citizenship journey.</p>
 
                 <h3 class="resources-group-title"><span class="resource-badge resource-badge--nonprofit">Non-Profit</span> Legal Aid</h3>
@@ -771,7 +884,7 @@
         </div>
     </div>
 
-    <footer class="footer">
+    <footer class="footer" id="mainFooter" style="display:none;">
         <p>Study materials based on official USCIS test questions. This is a study aid and not affiliated with USCIS.</p>
         <p>&copy; O'Brien Immigration Law</p>
     </footer>

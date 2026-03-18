@@ -14,11 +14,854 @@
     const show = (el) => { if (el) el.style.display = ""; };
     const hide = (el) => { if (el) el.style.display = "none"; };
 
-    // ---- Storage ----
+    // ---- Auth / User Management ----
+    function simpleHash(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; } return h.toString(36); }
+
+    function getUsers() { try { return JSON.parse(localStorage.getItem("civics_users") || "{}"); } catch { return {}; } }
+    function saveUsers(u) { try { localStorage.setItem("civics_users", JSON.stringify(u)); } catch {} }
+    function getCurrentUser() { try { return localStorage.getItem("civics_currentUser") || ""; } catch { return ""; } }
+    function setCurrentUser(u) { try { localStorage.setItem("civics_currentUser", u); } catch {} }
+
+    let currentUser = getCurrentUser(); // "" = not logged in, "guest" = guest, else username
+
+    // ---- Storage (profile-scoped) ----
+    function lsPrefix() { return "civics_profile_" + (currentUser || "guest") + "_"; }
     const LS = {
+        get(k, fallback) { try { const v = localStorage.getItem(lsPrefix() + k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
+        set(k, v) { try { localStorage.setItem(lsPrefix() + k, JSON.stringify(v)); autoSaveFlash(); } catch {} },
+    };
+
+    // Global LS (not profile-scoped, for settings like dark mode, language, voice)
+    const GLS = {
         get(k, fallback) { try { const v = localStorage.getItem("civics_" + k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
         set(k, v) { try { localStorage.setItem("civics_" + k, JSON.stringify(v)); } catch {} },
     };
+
+    // ---- Save indicator ----
+    let saveFlashTimeout = null;
+    function autoSaveFlash() {
+        const el = $("#saveIndicator");
+        if (!el) return;
+        el.classList.add("visible");
+        clearTimeout(saveFlashTimeout);
+        saveFlashTimeout = setTimeout(() => el.classList.remove("visible"), 1500);
+    }
+
+    // ============================================================
+    //  TRANSLATIONS (i18n)
+    // ============================================================
+    let currentLang = "en";
+
+    const LANGUAGES = [
+        { code: "en", flag: "\uD83C\uDDFA\uD83C\uDDF8", name: "English" },
+        { code: "es", flag: "\uD83C\uDDEA\uD83C\uDDF8", name: "Espa\u00f1ol" },
+        { code: "zh", flag: "\uD83C\uDDE8\uD83C\uDDF3", name: "\u4E2D\u6587" },
+        { code: "vi", flag: "\uD83C\uDDFB\uD83C\uDDF3", name: "Ti\u1EBFng Vi\u1EC7t" },
+        { code: "ko", flag: "\uD83C\uDDF0\uD83C\uDDF7", name: "\uD55C\uAD6D\uC5B4" },
+        { code: "tl", flag: "\uD83C\uDDF5\uD83C\uDDED", name: "Filipino" },
+        { code: "ar", flag: "\uD83C\uDDF8\uD83C\uDDE6", name: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629" },
+        { code: "fr", flag: "\uD83C\uDDEB\uD83C\uDDF7", name: "Fran\u00e7ais" },
+        { code: "pt", flag: "\uD83C\uDDE7\uD83C\uDDF7", name: "Portugu\u00eas" },
+        { code: "ru", flag: "\uD83C\uDDF7\uD83C\uDDFA", name: "\u0420\u0443\u0441\u0441\u043A\u0438\u0439" },
+    ];
+
+    const translations = {
+    en: {
+        landing_title: "USCIS Citizenship Test Prep",
+        landing_subtitle: "Free practice tests for the civics and English portions of the naturalization exam",
+        continue_guest: "Continue as Guest",
+        sign_in: "Sign In",
+        create_account: "Create Account",
+        username: "Username",
+        password: "Password",
+        display_name: "Display Name",
+        confirm_password: "Confirm Password",
+        hero_title: 'Prepare for Your<br><span class="gradient-text">Citizenship Test</span>',
+        civics_test: "Civics Test",
+        english_test: "English Test",
+        eligibility_check: "Eligibility Check",
+        start_studying: "Start Studying",
+        start_practicing: "Start Practicing",
+        check_now: "Check Now",
+        your_progress: "Your Progress",
+        day_streak: "Day Streak",
+        achievements: "Achievements",
+        tests_taken: "Tests Taken",
+        avg_score: "Avg Score",
+        back: "Back",
+        settings: "Settings",
+        sign_out: "Sign Out",
+        switch_user: "Switch User",
+        guest: "Guest",
+        flash_cards: "Flash Cards",
+        listen: "Listen",
+        practice_test: "Practice Test",
+        study: "Study",
+        history: "History",
+        all_categories: "All Categories",
+        shuffle: "Shuffle",
+        read_aloud: "Read Aloud",
+        i_got_it_right: "I Got It Right",
+        i_got_it_wrong: "I Got It Wrong",
+        begin_test: "Begin Test",
+        submit_answer: "Submit Answer",
+        next: "Next",
+        previous: "Previous",
+        passed: "Passed!",
+        keep_studying: "Keep Studying",
+        reading: "Reading",
+        writing_dictation: "Writing (Dictation)",
+        speaking: "Speaking",
+        full_mock_test: "Full Mock Test",
+        listen_first: "Listen First",
+        play_sentence: "Play Sentence",
+        check: "Check",
+        type_what_you_hear: "Type what you hear...",
+        eligibility_self_check: "Eligibility Self-Check",
+        ready_to_apply: "Ready to Apply!",
+        needs_attention: "Needs Attention",
+        issues_found: "Issues Found",
+        not_legal_advice: "This is not legal advice",
+        common_questions: "Common Questions & Concerns",
+        find_help: "Find Help Near You",
+        non_profit_legal: "Non-Profit Legal Aid",
+        immigration_attorneys: "Immigration Attorneys",
+        start_over: "Start Over",
+        retake: "Retake",
+        continue_text: "Continue",
+        resume: "Resume",
+        save: "Save",
+        saved: "Saved",
+        continue_where_left_off: "Continue where you left off?",
+        yes: "Yes",
+        no_start_fresh: "Start Fresh",
+        english_done: "English Done",
+        wrong_password: "Incorrect password",
+        username_taken: "Username already taken",
+        passwords_no_match: "Passwords do not match",
+        fields_required: "All fields are required",
+    },
+    es: {
+        landing_title: "Preparaci\u00f3n para el Examen de Ciudadan\u00eda USCIS",
+        landing_subtitle: "Pruebas de pr\u00e1ctica gratuitas para las secciones de educaci\u00f3n c\u00edvica e ingl\u00e9s del examen de naturalizaci\u00f3n",
+        continue_guest: "Continuar como invitado",
+        sign_in: "Iniciar sesi\u00f3n",
+        create_account: "Crear cuenta",
+        username: "Nombre de usuario",
+        password: "Contrase\u00f1a",
+        display_name: "Nombre para mostrar",
+        confirm_password: "Confirmar contrase\u00f1a",
+        hero_title: 'Prep\u00e1rate para tu<br><span class="gradient-text">Examen de Ciudadan\u00eda</span>',
+        civics_test: "Examen C\u00edvico",
+        english_test: "Examen de Ingl\u00e9s",
+        eligibility_check: "Verificaci\u00f3n de Elegibilidad",
+        start_studying: "Comenzar a estudiar",
+        start_practicing: "Comenzar a practicar",
+        check_now: "Verificar ahora",
+        your_progress: "Tu Progreso",
+        day_streak: "D\u00edas seguidos",
+        achievements: "Logros",
+        tests_taken: "Ex\u00e1menes",
+        avg_score: "Promedio",
+        back: "Atr\u00e1s",
+        settings: "Ajustes",
+        sign_out: "Cerrar sesi\u00f3n",
+        switch_user: "Cambiar usuario",
+        guest: "Invitado",
+        flash_cards: "Tarjetas",
+        listen: "Escuchar",
+        practice_test: "Examen de pr\u00e1ctica",
+        study: "Estudiar",
+        history: "Historial",
+        all_categories: "Todas las categor\u00edas",
+        shuffle: "Mezclar",
+        read_aloud: "Leer en voz alta",
+        i_got_it_right: "Acert\u00e9",
+        i_got_it_wrong: "Fall\u00e9",
+        begin_test: "Iniciar examen",
+        submit_answer: "Enviar respuesta",
+        next: "Siguiente",
+        previous: "Anterior",
+        passed: "\u00a1Aprobado!",
+        keep_studying: "Sigue estudiando",
+        reading: "Lectura",
+        writing_dictation: "Escritura (Dictado)",
+        speaking: "Expresi\u00f3n oral",
+        full_mock_test: "Examen simulado completo",
+        listen_first: "Escucha primero",
+        play_sentence: "Reproducir oraci\u00f3n",
+        check: "Verificar",
+        type_what_you_hear: "Escribe lo que escuches...",
+        eligibility_self_check: "Autoverificaci\u00f3n de elegibilidad",
+        ready_to_apply: "\u00a1Listo para solicitar!",
+        needs_attention: "Necesita atenci\u00f3n",
+        issues_found: "Problemas encontrados",
+        not_legal_advice: "Esto no es asesor\u00eda legal",
+        common_questions: "Preguntas frecuentes",
+        find_help: "Encuentra ayuda cerca de ti",
+        non_profit_legal: "Ayuda legal sin fines de lucro",
+        immigration_attorneys: "Abogados de inmigraci\u00f3n",
+        start_over: "Empezar de nuevo",
+        retake: "Repetir",
+        continue_text: "Continuar",
+        resume: "Reanudar",
+        save: "Guardar",
+        saved: "Guardado",
+        continue_where_left_off: "\u00bfContinuar donde lo dejaste?",
+        yes: "S\u00ed",
+        no_start_fresh: "Empezar de nuevo",
+        english_done: "Ingl\u00e9s hecho",
+        wrong_password: "Contrase\u00f1a incorrecta",
+        username_taken: "Nombre de usuario ya existe",
+        passwords_no_match: "Las contrase\u00f1as no coinciden",
+        fields_required: "Todos los campos son obligatorios",
+    },
+    zh: {
+        landing_title: "USCIS \u516C\u6C11\u8003\u8BD5\u51C6\u5907",
+        landing_subtitle: "\u5F52\u5316\u8003\u8BD5\u7684\u516C\u6C11\u77E5\u8BC6\u548C\u82F1\u8BED\u90E8\u5206\u514D\u8D39\u7EC3\u4E60\u8BD5\u9898",
+        continue_guest: "\u4EE5\u8BBF\u5BA2\u8EAB\u4EFD\u7EE7\u7EED",
+        sign_in: "\u767B\u5F55",
+        create_account: "\u521B\u5EFA\u8D26\u6237",
+        username: "\u7528\u6237\u540D",
+        password: "\u5BC6\u7801",
+        display_name: "\u663E\u793A\u540D\u79F0",
+        confirm_password: "\u786E\u8BA4\u5BC6\u7801",
+        hero_title: '\u51C6\u5907\u4F60\u7684<br><span class="gradient-text">\u516C\u6C11\u8003\u8BD5</span>',
+        civics_test: "\u516C\u6C11\u77E5\u8BC6\u8003\u8BD5",
+        english_test: "\u82F1\u8BED\u8003\u8BD5",
+        eligibility_check: "\u8D44\u683C\u68C0\u67E5",
+        start_studying: "\u5F00\u59CB\u5B66\u4E60",
+        start_practicing: "\u5F00\u59CB\u7EC3\u4E60",
+        check_now: "\u7ACB\u5373\u68C0\u67E5",
+        your_progress: "\u4F60\u7684\u8FDB\u5EA6",
+        day_streak: "\u8FDE\u7EED\u5929\u6570",
+        achievements: "\u6210\u5C31",
+        tests_taken: "\u8003\u8BD5\u6B21\u6570",
+        avg_score: "\u5E73\u5747\u5206",
+        back: "\u8FD4\u56DE",
+        settings: "\u8BBE\u7F6E",
+        sign_out: "\u9000\u51FA",
+        switch_user: "\u5207\u6362\u7528\u6237",
+        guest: "\u8BBF\u5BA2",
+        flash_cards: "\u95EA\u5361",
+        listen: "\u542C\u529B",
+        practice_test: "\u6A21\u62DF\u8003\u8BD5",
+        study: "\u5B66\u4E60",
+        history: "\u5386\u53F2",
+        all_categories: "\u6240\u6709\u7C7B\u522B",
+        shuffle: "\u968F\u673A",
+        read_aloud: "\u6717\u8BFB",
+        i_got_it_right: "\u6211\u7B54\u5BF9\u4E86",
+        i_got_it_wrong: "\u6211\u7B54\u9519\u4E86",
+        begin_test: "\u5F00\u59CB\u8003\u8BD5",
+        submit_answer: "\u63D0\u4EA4\u7B54\u6848",
+        next: "\u4E0B\u4E00\u9898",
+        previous: "\u4E0A\u4E00\u9898",
+        passed: "\u901A\u8FC7\uFF01",
+        keep_studying: "\u7EE7\u7EED\u5B66\u4E60",
+        reading: "\u9605\u8BFB",
+        writing_dictation: "\u5199\u4F5C\uFF08\u542C\u5199\uFF09",
+        speaking: "\u53E3\u8BED",
+        full_mock_test: "\u5168\u771F\u6A21\u62DF\u8003\u8BD5",
+        listen_first: "\u5148\u542C",
+        play_sentence: "\u64AD\u653E\u53E5\u5B50",
+        check: "\u68C0\u67E5",
+        type_what_you_hear: "\u8F93\u5165\u4F60\u542C\u5230\u7684...",
+        eligibility_self_check: "\u8D44\u683C\u81EA\u67E5",
+        ready_to_apply: "\u51C6\u5907\u7533\u8BF7\uFF01",
+        needs_attention: "\u9700\u8981\u6CE8\u610F",
+        issues_found: "\u53D1\u73B0\u95EE\u9898",
+        not_legal_advice: "\u8FD9\u4E0D\u662F\u6CD5\u5F8B\u5EFA\u8BAE",
+        common_questions: "\u5E38\u89C1\u95EE\u9898\u4E0E\u5173\u6CE8",
+        find_help: "\u5728\u4F60\u9644\u8FD1\u627E\u5230\u5E2E\u52A9",
+        non_profit_legal: "\u975E\u8425\u5229\u6CD5\u5F8B\u63F4\u52A9",
+        immigration_attorneys: "\u79FB\u6C11\u5F8B\u5E08",
+        start_over: "\u91CD\u65B0\u5F00\u59CB",
+        retake: "\u91CD\u8003",
+        continue_text: "\u7EE7\u7EED",
+        resume: "\u6062\u590D",
+        save: "\u4FDD\u5B58",
+        saved: "\u5DF2\u4FDD\u5B58",
+        continue_where_left_off: "\u7EE7\u7EED\u4E0A\u6B21\u7684\u8FDB\u5EA6\uFF1F",
+        yes: "\u662F",
+        no_start_fresh: "\u91CD\u65B0\u5F00\u59CB",
+        english_done: "\u82F1\u8BED\u5B8C\u6210",
+        wrong_password: "\u5BC6\u7801\u9519\u8BEF",
+        username_taken: "\u7528\u6237\u540D\u5DF2\u88AB\u4F7F\u7528",
+        passwords_no_match: "\u5BC6\u7801\u4E0D\u4E00\u81F4",
+        fields_required: "\u6240\u6709\u5B57\u6BB5\u90FD\u662F\u5FC5\u586B\u7684",
+    },
+    vi: {
+        landing_title: "Luy\u1EC7n thi Qu\u1ED1c t\u1ECBch USCIS",
+        landing_subtitle: "B\u00E0i thi th\u1EED mi\u1EC5n ph\u00ED cho ph\u1EA7n ki\u1EBFn th\u1EE9c c\u00F4ng d\u00E2n v\u00E0 ti\u1EBFng Anh c\u1EE7a k\u1EF3 thi nh\u1EADp qu\u1ED1c t\u1ECBch",
+        continue_guest: "Ti\u1EBFp t\u1EE5c v\u1EDBi vai kh\u00E1ch",
+        sign_in: "\u0110\u0103ng nh\u1EADp",
+        create_account: "T\u1EA1o t\u00E0i kho\u1EA3n",
+        username: "T\u00EAn ng\u01B0\u1EDDi d\u00F9ng",
+        password: "M\u1EADt kh\u1EA9u",
+        display_name: "T\u00EAn hi\u1EC3n th\u1ECB",
+        confirm_password: "X\u00E1c nh\u1EADn m\u1EADt kh\u1EA9u",
+        hero_title: 'Chu\u1EA9n b\u1ECB cho<br><span class="gradient-text">K\u1EF3 thi Qu\u1ED1c t\u1ECBch</span>',
+        civics_test: "Thi Ki\u1EBFn th\u1EE9c C\u00F4ng d\u00E2n",
+        english_test: "Thi Ti\u1EBFng Anh",
+        eligibility_check: "Ki\u1EC3m tra \u0110i\u1EC1u ki\u1EC7n",
+        start_studying: "B\u1EAFt \u0111\u1EA7u h\u1ECDc",
+        start_practicing: "B\u1EAFt \u0111\u1EA7u luy\u1EC7n t\u1EADp",
+        check_now: "Ki\u1EC3m tra ngay",
+        your_progress: "Ti\u1EBFn \u0111\u1ED9 c\u1EE7a b\u1EA1n",
+        day_streak: "Chu\u1ED7i ng\u00E0y",
+        achievements: "Th\u00E0nh t\u00EDch",
+        tests_taken: "S\u1ED1 b\u00E0i thi",
+        avg_score: "\u0110i\u1EC3m TB",
+        back: "Quay l\u1EA1i",
+        settings: "C\u00E0i \u0111\u1EB7t",
+        sign_out: "\u0110\u0103ng xu\u1EA5t",
+        switch_user: "Chuy\u1EC3n ng\u01B0\u1EDDi d\u00F9ng",
+        guest: "Kh\u00E1ch",
+        flash_cards: "Th\u1EBB ghi nh\u1EDB",
+        listen: "Nghe",
+        practice_test: "Thi th\u1EED",
+        study: "H\u1ECDc",
+        history: "L\u1ECBch s\u1EED",
+        all_categories: "T\u1EA5t c\u1EA3 ch\u1EE7 \u0111\u1EC1",
+        shuffle: "Tr\u1ED9n",
+        read_aloud: "\u0110\u1ECDc to",
+        i_got_it_right: "T\u00F4i \u0111\u00FAng",
+        i_got_it_wrong: "T\u00F4i sai",
+        begin_test: "B\u1EAFt \u0111\u1EA7u thi",
+        submit_answer: "G\u1EEDi c\u00E2u tr\u1EA3 l\u1EDDi",
+        next: "Ti\u1EBFp",
+        previous: "Tr\u01B0\u1EDBc",
+        passed: "\u0110\u1EADu!",
+        keep_studying: "Ti\u1EBFp t\u1EE5c h\u1ECDc",
+        reading: "\u0110\u1ECDc",
+        writing_dictation: "Vi\u1EBFt (Ch\u00EDnh t\u1EA3)",
+        speaking: "N\u00F3i",
+        full_mock_test: "Thi th\u1EED \u0111\u1EA7y \u0111\u1EE7",
+        listen_first: "Nghe tr\u01B0\u1EDBc",
+        play_sentence: "Ph\u00E1t c\u00E2u",
+        check: "Ki\u1EC3m tra",
+        type_what_you_hear: "G\u00F5 nh\u1EEFng g\u00EC b\u1EA1n nghe...",
+        eligibility_self_check: "T\u1EF1 ki\u1EC3m tra \u0111i\u1EC1u ki\u1EC7n",
+        ready_to_apply: "S\u1EB5n s\u00E0ng n\u1ED9p \u0111\u01A1n!",
+        needs_attention: "C\u1EA7n ch\u00FA \u00FD",
+        issues_found: "Ph\u00E1t hi\u1EC7n v\u1EA5n \u0111\u1EC1",
+        not_legal_advice: "\u0110\u00E2y kh\u00F4ng ph\u1EA3i l\u00E0 t\u01B0 v\u1EA5n ph\u00E1p l\u00FD",
+        common_questions: "C\u00E2u h\u1ECFi th\u01B0\u1EDDng g\u1EB7p",
+        find_help: "T\u00ECm h\u1ED7 tr\u1EE3 g\u1EA7n b\u1EA1n",
+        non_profit_legal: "Tr\u1EE3 gi\u00FAp ph\u00E1p l\u00FD phi l\u1EE3i nhu\u1EADn",
+        immigration_attorneys: "Lu\u1EADt s\u01B0 di tr\u00FA",
+        start_over: "B\u1EAFt \u0111\u1EA7u l\u1EA1i",
+        retake: "Thi l\u1EA1i",
+        continue_text: "Ti\u1EBFp t\u1EE5c",
+        resume: "Ti\u1EBFp t\u1EE5c",
+        save: "L\u01B0u",
+        saved: "\u0110\u00E3 l\u01B0u",
+        continue_where_left_off: "Ti\u1EBFp t\u1EE5c t\u1EEB n\u01A1i b\u1EA1n \u0111\u00E3 d\u1EEBng?",
+        yes: "C\u00F3",
+        no_start_fresh: "B\u1EAFt \u0111\u1EA7u m\u1EDBi",
+        english_done: "Ti\u1EBFng Anh xong",
+        wrong_password: "Sai m\u1EADt kh\u1EA9u",
+        username_taken: "T\u00EAn \u0111\u00E3 \u0111\u01B0\u1EE3c s\u1EED d\u1EE5ng",
+        passwords_no_match: "M\u1EADt kh\u1EA9u kh\u00F4ng kh\u1EDBp",
+        fields_required: "Vui l\u00F2ng \u0111i\u1EC1n \u0111\u1EA7y \u0111\u1EE7 c\u00E1c tr\u01B0\u1EDDng",
+    },
+    ko: {
+        landing_title: "USCIS \uC2DC\uBBFC\uAD8C \uC2DC\uD5D8 \uC900\uBE44",
+        landing_subtitle: "\uADC0\uD654 \uC2DC\uD5D8\uC758 \uC2DC\uBBFC \uC9C0\uC2DD \uBC0F \uC601\uC5B4 \uBD80\uBD84 \uBB34\uB8CC \uC5F0\uC2B5 \uC2DC\uD5D8",
+        continue_guest: "\uC190\uB2D8\uC73C\uB85C \uACC4\uC18D",
+        sign_in: "\uB85C\uADF8\uC778",
+        create_account: "\uACC4\uC815 \uB9CC\uB4E4\uAE30",
+        username: "\uC0AC\uC6A9\uC790\uBA85",
+        password: "\uBE44\uBC00\uBC88\uD638",
+        display_name: "\uD45C\uC2DC \uC774\uB984",
+        confirm_password: "\uBE44\uBC00\uBC88\uD638 \uD655\uC778",
+        hero_title: '<span class="gradient-text">\uC2DC\uBBFC\uAD8C \uC2DC\uD5D8</span><br>\uC900\uBE44\uD558\uAE30',
+        civics_test: "\uC2DC\uBBFC \uC9C0\uC2DD \uC2DC\uD5D8",
+        english_test: "\uC601\uC5B4 \uC2DC\uD5D8",
+        eligibility_check: "\uC790\uACA9 \uD655\uC778",
+        start_studying: "\uD559\uC2B5 \uC2DC\uC791",
+        start_practicing: "\uC5F0\uC2B5 \uC2DC\uC791",
+        check_now: "\uC9C0\uAE08 \uD655\uC778",
+        your_progress: "\uB098\uC758 \uC9C4\uD589 \uC0C1\uD669",
+        day_streak: "\uC5F0\uC18D \uC77C\uC218",
+        achievements: "\uC5C5\uC801",
+        tests_taken: "\uC2DC\uD5D8 \uD69F\uC218",
+        avg_score: "\uD3C9\uADE0 \uC810\uC218",
+        back: "\uB4A4\uB85C",
+        settings: "\uC124\uC815",
+        sign_out: "\uB85C\uADF8\uC544\uC6C3",
+        switch_user: "\uC0AC\uC6A9\uC790 \uBCC0\uACBD",
+        guest: "\uC190\uB2D8",
+        flash_cards: "\uD50C\uB798\uC2DC \uCE74\uB4DC",
+        listen: "\uB4E3\uAE30",
+        practice_test: "\uBAA8\uC758 \uC2DC\uD5D8",
+        study: "\uD559\uC2B5",
+        history: "\uAE30\uB85D",
+        all_categories: "\uBAA8\uB4E0 \uCE74\uD14C\uACE0\uB9AC",
+        shuffle: "\uC12C\uAE30",
+        read_aloud: "\uC18C\uB9AC \uB0B4\uC5B4 \uC77D\uAE30",
+        i_got_it_right: "\uB9DE\uC558\uC5B4\uC694",
+        i_got_it_wrong: "\uD2C0\uB838\uC5B4\uC694",
+        begin_test: "\uC2DC\uD5D8 \uC2DC\uC791",
+        submit_answer: "\uB2F5 \uC81C\uCD9C",
+        next: "\uB2E4\uC74C",
+        previous: "\uC774\uC804",
+        passed: "\uD569\uACA9!",
+        keep_studying: "\uACC4\uC18D \uD559\uC2B5\uD558\uC138\uC694",
+        reading: "\uC77D\uAE30",
+        writing_dictation: "\uC4F0\uAE30 (\uBC1B\uC544\uC4F0\uAE30)",
+        speaking: "\uB9D0\uD558\uAE30",
+        full_mock_test: "\uC804\uCCB4 \uBAA8\uC758 \uC2DC\uD5D8",
+        listen_first: "\uBA3C\uC800 \uB4E3\uAE30",
+        play_sentence: "\uBB38\uC7A5 \uC7AC\uC0DD",
+        check: "\uD655\uC778",
+        type_what_you_hear: "\uB4E4\uC740 \uAC83\uC744 \uC785\uB825\uD558\uC138\uC694...",
+        eligibility_self_check: "\uC790\uACA9 \uC790\uAC00 \uD655\uC778",
+        ready_to_apply: "\uC2E0\uCCAD \uC900\uBE44 \uC644\uB8CC!",
+        needs_attention: "\uC8FC\uC758 \uD544\uC694",
+        issues_found: "\uBB38\uC81C \uBC1C\uACAC",
+        not_legal_advice: "\uC774\uAC83\uC740 \uBC95\uB960 \uC870\uC5B8\uC774 \uC544\uB2D9\uB2C8\uB2E4",
+        common_questions: "\uC790\uC8FC \uBB3B\uB294 \uC9C8\uBB38",
+        find_help: "\uADFC\uCC98\uC5D0\uC11C \uB3C4\uC6C0 \uCC3E\uAE30",
+        non_profit_legal: "\uBE44\uC601\uB9AC \uBC95\uB960 \uC9C0\uC6D0",
+        immigration_attorneys: "\uC774\uBBFC \uBCC0\uD638\uC0AC",
+        start_over: "\uCC98\uC74C\uBD80\uD130",
+        retake: "\uC7AC\uC2DC\uD5D8",
+        continue_text: "\uACC4\uC18D",
+        resume: "\uC7AC\uAC1C",
+        save: "\uC800\uC7A5",
+        saved: "\uC800\uC7A5\uB428",
+        continue_where_left_off: "\uC774\uC5B4\uC11C \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
+        yes: "\uC608",
+        no_start_fresh: "\uCC98\uC74C\uBD80\uD130",
+        english_done: "\uC601\uC5B4 \uC644\uB8CC",
+        wrong_password: "\uBE44\uBC00\uBC88\uD638\uAC00 \uD2C0\uB838\uC2B5\uB2C8\uB2E4",
+        username_taken: "\uC774\uBBF8 \uC0AC\uC6A9 \uC911\uC778 \uC0AC\uC6A9\uC790\uBA85\uC785\uB2C8\uB2E4",
+        passwords_no_match: "\uBE44\uBC00\uBC88\uD638\uAC00 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
+        fields_required: "\uBAA8\uB4E0 \uD544\uB4DC\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694",
+    },
+    tl: {
+        landing_title: "Paghahanda sa Pagsusulit ng Pagkamamamayan ng USCIS",
+        landing_subtitle: "Libreng mga practice test para sa bahagi ng civics at Ingles ng naturalization exam",
+        continue_guest: "Magpatuloy bilang Bisita",
+        sign_in: "Mag-sign In",
+        create_account: "Gumawa ng Account",
+        username: "Username",
+        password: "Password",
+        display_name: "Pangalan na Ipapakita",
+        confirm_password: "Kumpirmahin ang Password",
+        hero_title: 'Maghanda para sa Iyong<br><span class="gradient-text">Pagsusulit sa Pagkamamamayan</span>',
+        civics_test: "Pagsusulit sa Civics",
+        english_test: "Pagsusulit sa Ingles",
+        eligibility_check: "Pagsusuri ng Kwalipikasyon",
+        start_studying: "Magsimulang Mag-aral",
+        start_practicing: "Magsimulang Mag-ensayo",
+        check_now: "Suriin Ngayon",
+        your_progress: "Iyong Progreso",
+        day_streak: "Sunod-sunod na Araw",
+        achievements: "Mga Nakamit",
+        tests_taken: "Bilang ng Pagsusulit",
+        avg_score: "Ave. Iskor",
+        back: "Bumalik",
+        settings: "Mga Setting",
+        sign_out: "Mag-sign Out",
+        switch_user: "Palitan ang User",
+        guest: "Bisita",
+        flash_cards: "Flash Cards",
+        listen: "Makinig",
+        practice_test: "Practice Test",
+        study: "Pag-aralan",
+        history: "Kasaysayan",
+        all_categories: "Lahat ng Kategorya",
+        shuffle: "I-shuffle",
+        read_aloud: "Basahin Nang Malakas",
+        i_got_it_right: "Tama Ako",
+        i_got_it_wrong: "Mali Ako",
+        begin_test: "Simulan ang Pagsusulit",
+        submit_answer: "Isumite ang Sagot",
+        next: "Susunod",
+        previous: "Nakaraan",
+        passed: "Pumasa!",
+        keep_studying: "Ipagpatuloy ang Pag-aaral",
+        reading: "Pagbasa",
+        writing_dictation: "Pagsulat (Dikta)",
+        speaking: "Pagsasalita",
+        full_mock_test: "Buong Mock Test",
+        listen_first: "Makinig Muna",
+        play_sentence: "I-play ang Pangungusap",
+        check: "Suriin",
+        type_what_you_hear: "I-type ang narinig mo...",
+        eligibility_self_check: "Sariling Pagsusuri ng Kwalipikasyon",
+        ready_to_apply: "Handa Nang Mag-apply!",
+        needs_attention: "Kailangan ng Pansin",
+        issues_found: "May Natuklasan na Isyu",
+        not_legal_advice: "Hindi ito legal na payo",
+        common_questions: "Mga Karaniwang Tanong",
+        find_help: "Humanap ng Tulong Malapit sa Iyo",
+        non_profit_legal: "Non-Profit na Legal Aid",
+        immigration_attorneys: "Mga Abogado sa Imigrasyon",
+        start_over: "Magsimula Muli",
+        retake: "Ulitin",
+        continue_text: "Magpatuloy",
+        resume: "Ipagpatuloy",
+        save: "I-save",
+        saved: "Na-save",
+        continue_where_left_off: "Ipagpatuloy kung saan ka tumigil?",
+        yes: "Oo",
+        no_start_fresh: "Magsimula Muli",
+        english_done: "Ingles Tapos",
+        wrong_password: "Maling password",
+        username_taken: "Gamit na ang username",
+        passwords_no_match: "Hindi tugma ang mga password",
+        fields_required: "Kinakailangan ang lahat ng field",
+    },
+    ar: {
+        landing_title: "\u0627\u0644\u062A\u062D\u0636\u064A\u0631 \u0644\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0645\u0648\u0627\u0637\u0646\u0629 USCIS",
+        landing_subtitle: "\u0627\u062E\u062A\u0628\u0627\u0631\u0627\u062A \u062A\u062F\u0631\u064A\u0628\u064A\u0629 \u0645\u062C\u0627\u0646\u064A\u0629 \u0644\u0623\u062C\u0632\u0627\u0621 \u0627\u0644\u062A\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062F\u0646\u064A\u0629 \u0648\u0627\u0644\u0644\u063A\u0629 \u0627\u0644\u0625\u0646\u062C\u0644\u064A\u0632\u064A\u0629 \u0645\u0646 \u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u062A\u062C\u0646\u0633",
+        continue_guest: "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0643\u0636\u064A\u0641",
+        sign_in: "\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644",
+        create_account: "\u0625\u0646\u0634\u0627\u0621 \u062D\u0633\u0627\u0628",
+        username: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645",
+        password: "\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631",
+        display_name: "\u0627\u0633\u0645 \u0627\u0644\u0639\u0631\u0636",
+        confirm_password: "\u062A\u0623\u0643\u064A\u062F \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631",
+        hero_title: '\u0627\u0633\u062A\u0639\u062F \u0644\u0640<br><span class="gradient-text">\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0645\u0648\u0627\u0637\u0646\u0629</span>',
+        civics_test: "\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u062A\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062F\u0646\u064A\u0629",
+        english_test: "\u0627\u062E\u062A\u0628\u0627\u0631 \u0627\u0644\u0644\u063A\u0629 \u0627\u0644\u0625\u0646\u062C\u0644\u064A\u0632\u064A\u0629",
+        eligibility_check: "\u0641\u062D\u0635 \u0627\u0644\u0623\u0647\u0644\u064A\u0629",
+        start_studying: "\u0627\u0628\u062F\u0623 \u0627\u0644\u062F\u0631\u0627\u0633\u0629",
+        start_practicing: "\u0627\u0628\u062F\u0623 \u0627\u0644\u062A\u062F\u0631\u064A\u0628",
+        check_now: "\u062A\u062D\u0642\u0642 \u0627\u0644\u0622\u0646",
+        your_progress: "\u062A\u0642\u062F\u0645\u0643",
+        day_streak: "\u0633\u0644\u0633\u0644\u0629 \u0623\u064A\u0627\u0645",
+        achievements: "\u0625\u0646\u062C\u0627\u0632\u0627\u062A",
+        tests_taken: "\u0627\u062E\u062A\u0628\u0627\u0631\u0627\u062A",
+        avg_score: "\u0645\u062A\u0648\u0633\u0637",
+        back: "\u0631\u062C\u0648\u0639",
+        settings: "\u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A",
+        sign_out: "\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062E\u0631\u0648\u062C",
+        switch_user: "\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645",
+        guest: "\u0636\u064A\u0641",
+        flash_cards: "\u0628\u0637\u0627\u0642\u0627\u062A",
+        listen: "\u0627\u0633\u062A\u0645\u0639",
+        practice_test: "\u0627\u062E\u062A\u0628\u0627\u0631 \u062A\u062F\u0631\u064A\u0628\u064A",
+        study: "\u062F\u0631\u0627\u0633\u0629",
+        history: "\u0633\u062C\u0644",
+        all_categories: "\u062C\u0645\u064A\u0639 \u0627\u0644\u0641\u0626\u0627\u062A",
+        shuffle: "\u062E\u0644\u0637",
+        read_aloud: "\u0627\u0642\u0631\u0623 \u0628\u0635\u0648\u062A \u0639\u0627\u0644\u064D",
+        i_got_it_right: "\u0623\u062C\u0628\u062A \u0635\u062D",
+        i_got_it_wrong: "\u0623\u062C\u0628\u062A \u062E\u0637\u0623",
+        begin_test: "\u0627\u0628\u062F\u0623 \u0627\u0644\u0627\u062E\u062A\u0628\u0627\u0631",
+        submit_answer: "\u0623\u0631\u0633\u0644 \u0627\u0644\u0625\u062C\u0627\u0628\u0629",
+        next: "\u0627\u0644\u062A\u0627\u0644\u064A",
+        previous: "\u0627\u0644\u0633\u0627\u0628\u0642",
+        passed: "\u0646\u0627\u062C\u062D!",
+        keep_studying: "\u0648\u0627\u0635\u0644 \u0627\u0644\u062F\u0631\u0627\u0633\u0629",
+        reading: "\u0642\u0631\u0627\u0621\u0629",
+        writing_dictation: "\u0643\u062A\u0627\u0628\u0629 (\u0625\u0645\u0644\u0627\u0621)",
+        speaking: "\u0645\u062D\u0627\u062F\u062B\u0629",
+        full_mock_test: "\u0627\u062E\u062A\u0628\u0627\u0631 \u062A\u062C\u0631\u064A\u0628\u064A \u0643\u0627\u0645\u0644",
+        listen_first: "\u0627\u0633\u062A\u0645\u0639 \u0623\u0648\u0644\u0627\u064B",
+        play_sentence: "\u0634\u063A\u0651\u0644 \u0627\u0644\u062C\u0645\u0644\u0629",
+        check: "\u062A\u062D\u0642\u0642",
+        type_what_you_hear: "\u0627\u0643\u062A\u0628 \u0645\u0627 \u062A\u0633\u0645\u0639\u0647...",
+        eligibility_self_check: "\u0641\u062D\u0635 \u0630\u0627\u062A\u064A \u0644\u0644\u0623\u0647\u0644\u064A\u0629",
+        ready_to_apply: "\u062C\u0627\u0647\u0632 \u0644\u0644\u062A\u0642\u062F\u064A\u0645!",
+        needs_attention: "\u064A\u062D\u062A\u0627\u062C \u0627\u0646\u062A\u0628\u0627\u0647",
+        issues_found: "\u062A\u0645 \u0627\u0644\u0639\u062B\u0648\u0631 \u0639\u0644\u0649 \u0645\u0634\u0627\u0643\u0644",
+        not_legal_advice: "\u0647\u0630\u0627 \u0644\u064A\u0633 \u0627\u0633\u062A\u0634\u0627\u0631\u0629 \u0642\u0627\u0646\u0648\u0646\u064A\u0629",
+        common_questions: "\u0623\u0633\u0626\u0644\u0629 \u0634\u0627\u0626\u0639\u0629",
+        find_help: "\u0627\u0628\u062D\u062B \u0639\u0646 \u0645\u0633\u0627\u0639\u062F\u0629 \u0642\u0631\u064A\u0628\u0629",
+        non_profit_legal: "\u0645\u0633\u0627\u0639\u062F\u0629 \u0642\u0627\u0646\u0648\u0646\u064A\u0629 \u063A\u064A\u0631 \u0631\u0628\u062D\u064A\u0629",
+        immigration_attorneys: "\u0645\u062D\u0627\u0645\u0648 \u0647\u062C\u0631\u0629",
+        start_over: "\u0627\u0628\u062F\u0623 \u0645\u0646 \u062C\u062F\u064A\u062F",
+        retake: "\u0623\u0639\u062F \u0627\u0644\u0627\u062E\u062A\u0628\u0627\u0631",
+        continue_text: "\u0645\u062A\u0627\u0628\u0639\u0629",
+        resume: "\u0627\u0633\u062A\u0626\u0646\u0627\u0641",
+        save: "\u062D\u0641\u0638",
+        saved: "\u062A\u0645 \u0627\u0644\u062D\u0641\u0638",
+        continue_where_left_off: "\u0647\u0644 \u062A\u0631\u064A\u062F \u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0646 \u062D\u064A\u062B \u062A\u0648\u0642\u0641\u062A\u061F",
+        yes: "\u0646\u0639\u0645",
+        no_start_fresh: "\u0627\u0628\u062F\u0623 \u0645\u0646 \u062C\u062F\u064A\u062F",
+        english_done: "\u0627\u0644\u0625\u0646\u062C\u0644\u064A\u0632\u064A\u0629 \u0645\u0643\u062A\u0645\u0644\u0629",
+        wrong_password: "\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u062E\u0627\u0637\u0626\u0629",
+        username_taken: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0645\u0633\u062A\u062E\u062F\u0645 \u0628\u0627\u0644\u0641\u0639\u0644",
+        passwords_no_match: "\u0643\u0644\u0645\u062A\u0627 \u0627\u0644\u0645\u0631\u0648\u0631 \u063A\u064A\u0631 \u0645\u062A\u0637\u0627\u0628\u0642\u062A\u064A\u0646",
+        fields_required: "\u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644 \u0645\u0637\u0644\u0648\u0628\u0629",
+    },
+    fr: {
+        landing_title: "Pr\u00e9paration au test de citoyennet\u00e9 USCIS",
+        landing_subtitle: "Tests pratiques gratuits pour les sections d'\u00e9ducation civique et d'anglais de l'examen de naturalisation",
+        continue_guest: "Continuer en tant qu'invit\u00e9",
+        sign_in: "Se connecter",
+        create_account: "Cr\u00e9er un compte",
+        username: "Nom d'utilisateur",
+        password: "Mot de passe",
+        display_name: "Nom d'affichage",
+        confirm_password: "Confirmer le mot de passe",
+        hero_title: 'Pr\u00e9parez votre<br><span class="gradient-text">Examen de Citoyennet\u00e9</span>',
+        civics_test: "Test Civique",
+        english_test: "Test d'Anglais",
+        eligibility_check: "V\u00e9rification d'\u00c9ligibilit\u00e9",
+        start_studying: "Commencer \u00e0 \u00e9tudier",
+        start_practicing: "Commencer \u00e0 pratiquer",
+        check_now: "V\u00e9rifier maintenant",
+        your_progress: "Votre Progr\u00e8s",
+        day_streak: "Jours cons\u00e9cutifs",
+        achievements: "R\u00e9alisations",
+        tests_taken: "Tests pass\u00e9s",
+        avg_score: "Score moyen",
+        back: "Retour",
+        settings: "Param\u00e8tres",
+        sign_out: "D\u00e9connexion",
+        switch_user: "Changer d'utilisateur",
+        guest: "Invit\u00e9",
+        flash_cards: "Cartes m\u00e9moire",
+        listen: "\u00c9couter",
+        practice_test: "Test pratique",
+        study: "\u00c9tude",
+        history: "Historique",
+        all_categories: "Toutes les cat\u00e9gories",
+        shuffle: "M\u00e9langer",
+        read_aloud: "Lire \u00e0 voix haute",
+        i_got_it_right: "J'ai bon",
+        i_got_it_wrong: "J'ai faux",
+        begin_test: "Commencer le test",
+        submit_answer: "Soumettre la r\u00e9ponse",
+        next: "Suivant",
+        previous: "Pr\u00e9c\u00e9dent",
+        passed: "R\u00e9ussi\u00a0!",
+        keep_studying: "Continuez \u00e0 \u00e9tudier",
+        reading: "Lecture",
+        writing_dictation: "\u00c9criture (Dict\u00e9e)",
+        speaking: "Expression orale",
+        full_mock_test: "Test blanc complet",
+        listen_first: "\u00c9coutez d'abord",
+        play_sentence: "Jouer la phrase",
+        check: "V\u00e9rifier",
+        type_what_you_hear: "Tapez ce que vous entendez...",
+        eligibility_self_check: "Auto-v\u00e9rification d'\u00e9ligibilit\u00e9",
+        ready_to_apply: "Pr\u00eat \u00e0 postuler\u00a0!",
+        needs_attention: "N\u00e9cessite attention",
+        issues_found: "Probl\u00e8mes trouv\u00e9s",
+        not_legal_advice: "Ceci n'est pas un avis juridique",
+        common_questions: "Questions fr\u00e9quentes",
+        find_help: "Trouver de l'aide pr\u00e8s de chez vous",
+        non_profit_legal: "Aide juridique \u00e0 but non lucratif",
+        immigration_attorneys: "Avocats en immigration",
+        start_over: "Recommencer",
+        retake: "Repasser",
+        continue_text: "Continuer",
+        resume: "Reprendre",
+        save: "Enregistrer",
+        saved: "Enregistr\u00e9",
+        continue_where_left_off: "Reprendre l\u00e0 o\u00f9 vous vous \u00eates arr\u00eat\u00e9\u00a0?",
+        yes: "Oui",
+        no_start_fresh: "Recommencer",
+        english_done: "Anglais termin\u00e9",
+        wrong_password: "Mot de passe incorrect",
+        username_taken: "Nom d'utilisateur d\u00e9j\u00e0 pris",
+        passwords_no_match: "Les mots de passe ne correspondent pas",
+        fields_required: "Tous les champs sont requis",
+    },
+    pt: {
+        landing_title: "Prepara\u00e7\u00e3o para o Teste de Cidadania USCIS",
+        landing_subtitle: "Testes pr\u00e1ticos gratuitos para as se\u00e7\u00f5es de educa\u00e7\u00e3o c\u00edvica e ingl\u00eas do exame de naturaliza\u00e7\u00e3o",
+        continue_guest: "Continuar como convidado",
+        sign_in: "Entrar",
+        create_account: "Criar conta",
+        username: "Nome de usu\u00e1rio",
+        password: "Senha",
+        display_name: "Nome de exibi\u00e7\u00e3o",
+        confirm_password: "Confirmar senha",
+        hero_title: 'Prepare-se para o<br><span class="gradient-text">Teste de Cidadania</span>',
+        civics_test: "Teste C\u00edvico",
+        english_test: "Teste de Ingl\u00eas",
+        eligibility_check: "Verifica\u00e7\u00e3o de Elegibilidade",
+        start_studying: "Come\u00e7ar a estudar",
+        start_practicing: "Come\u00e7ar a praticar",
+        check_now: "Verificar agora",
+        your_progress: "Seu Progresso",
+        day_streak: "Dias seguidos",
+        achievements: "Conquistas",
+        tests_taken: "Testes feitos",
+        avg_score: "M\u00e9dia",
+        back: "Voltar",
+        settings: "Configura\u00e7\u00f5es",
+        sign_out: "Sair",
+        switch_user: "Trocar usu\u00e1rio",
+        guest: "Convidado",
+        flash_cards: "Cart\u00f5es",
+        listen: "Ouvir",
+        practice_test: "Teste pr\u00e1tico",
+        study: "Estudo",
+        history: "Hist\u00f3rico",
+        all_categories: "Todas as categorias",
+        shuffle: "Embaralhar",
+        read_aloud: "Ler em voz alta",
+        i_got_it_right: "Acertei",
+        i_got_it_wrong: "Errei",
+        begin_test: "Iniciar teste",
+        submit_answer: "Enviar resposta",
+        next: "Pr\u00f3ximo",
+        previous: "Anterior",
+        passed: "Aprovado!",
+        keep_studying: "Continue estudando",
+        reading: "Leitura",
+        writing_dictation: "Escrita (Ditado)",
+        speaking: "Fala",
+        full_mock_test: "Simulado completo",
+        listen_first: "Ou\u00e7a primeiro",
+        play_sentence: "Reproduzir frase",
+        check: "Verificar",
+        type_what_you_hear: "Digite o que voc\u00ea ouve...",
+        eligibility_self_check: "Autoverifica\u00e7\u00e3o de elegibilidade",
+        ready_to_apply: "Pronto para aplicar!",
+        needs_attention: "Precisa de aten\u00e7\u00e3o",
+        issues_found: "Problemas encontrados",
+        not_legal_advice: "Isto n\u00e3o \u00e9 aconselhamento jur\u00eddico",
+        common_questions: "Perguntas frequentes",
+        find_help: "Encontre ajuda perto de voc\u00ea",
+        non_profit_legal: "Assist\u00eancia jur\u00eddica sem fins lucrativos",
+        immigration_attorneys: "Advogados de imigra\u00e7\u00e3o",
+        start_over: "Recome\u00e7ar",
+        retake: "Refazer",
+        continue_text: "Continuar",
+        resume: "Retomar",
+        save: "Salvar",
+        saved: "Salvo",
+        continue_where_left_off: "Continuar de onde parou?",
+        yes: "Sim",
+        no_start_fresh: "Come\u00e7ar de novo",
+        english_done: "Ingl\u00eas conclu\u00eddo",
+        wrong_password: "Senha incorreta",
+        username_taken: "Nome de usu\u00e1rio j\u00e1 existe",
+        passwords_no_match: "As senhas n\u00e3o coincidem",
+        fields_required: "Todos os campos s\u00e3o obrigat\u00f3rios",
+    },
+    ru: {
+        landing_title: "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u043A \u044D\u043A\u0437\u0430\u043C\u0435\u043D\u0443 \u043D\u0430 \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u043E USCIS",
+        landing_subtitle: "\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0435 \u043F\u0440\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0442\u0435\u0441\u0442\u044B \u043F\u043E \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u043E\u0432\u0435\u0434\u0435\u043D\u0438\u044E \u0438 \u0430\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u043E\u043C\u0443 \u044F\u0437\u044B\u043A\u0443 \u0434\u043B\u044F \u044D\u043A\u0437\u0430\u043C\u0435\u043D\u0430 \u043D\u0430 \u043D\u0430\u0442\u0443\u0440\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u044E",
+        continue_guest: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u043A\u0430\u043A \u0433\u043E\u0441\u0442\u044C",
+        sign_in: "\u0412\u043E\u0439\u0442\u0438",
+        create_account: "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442",
+        username: "\u0418\u043C\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F",
+        password: "\u041F\u0430\u0440\u043E\u043B\u044C",
+        display_name: "\u041E\u0442\u043E\u0431\u0440\u0430\u0436\u0430\u0435\u043C\u043E\u0435 \u0438\u043C\u044F",
+        confirm_password: "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C \u043F\u0430\u0440\u043E\u043B\u044C",
+        hero_title: '\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u044C\u0442\u0435\u0441\u044C \u043A<br><span class="gradient-text">\u042D\u043A\u0437\u0430\u043C\u0435\u043D\u0443 \u043D\u0430 \u0413\u0440\u0430\u0436\u0434\u0430\u043D\u0441\u0442\u0432\u043E</span>',
+        civics_test: "\u0422\u0435\u0441\u0442 \u043F\u043E \u0433\u0440\u0430\u0436\u0434\u0430\u043D\u043E\u0432\u0435\u0434\u0435\u043D\u0438\u044E",
+        english_test: "\u0422\u0435\u0441\u0442 \u043F\u043E \u0430\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u043E\u043C\u0443",
+        eligibility_check: "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044F",
+        start_studying: "\u041D\u0430\u0447\u0430\u0442\u044C \u0443\u0447\u0438\u0442\u044C\u0441\u044F",
+        start_practicing: "\u041D\u0430\u0447\u0430\u0442\u044C \u043F\u0440\u0430\u043A\u0442\u0438\u043A\u0443",
+        check_now: "\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0441\u0435\u0439\u0447\u0430\u0441",
+        your_progress: "\u0412\u0430\u0448 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441",
+        day_streak: "\u0414\u043D\u0435\u0439 \u043F\u043E\u0434\u0440\u044F\u0434",
+        achievements: "\u0414\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F",
+        tests_taken: "\u0422\u0435\u0441\u0442\u043E\u0432",
+        avg_score: "\u0421\u0440\u0435\u0434\u043D\u0438\u0439 \u0431\u0430\u043B\u043B",
+        back: "\u041D\u0430\u0437\u0430\u0434",
+        settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438",
+        sign_out: "\u0412\u044B\u0439\u0442\u0438",
+        switch_user: "\u0421\u043C\u0435\u043D\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F",
+        guest: "\u0413\u043E\u0441\u0442\u044C",
+        flash_cards: "\u041A\u0430\u0440\u0442\u043E\u0447\u043A\u0438",
+        listen: "\u0421\u043B\u0443\u0448\u0430\u0442\u044C",
+        practice_test: "\u041F\u0440\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0442\u0435\u0441\u0442",
+        study: "\u0423\u0447\u0451\u0431\u0430",
+        history: "\u0418\u0441\u0442\u043E\u0440\u0438\u044F",
+        all_categories: "\u0412\u0441\u0435 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u0438",
+        shuffle: "\u041F\u0435\u0440\u0435\u043C\u0435\u0448\u0430\u0442\u044C",
+        read_aloud: "\u0427\u0438\u0442\u0430\u0442\u044C \u0432\u0441\u043B\u0443\u0445",
+        i_got_it_right: "\u042F \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E",
+        i_got_it_wrong: "\u042F \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0435\u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E",
+        begin_test: "\u041D\u0430\u0447\u0430\u0442\u044C \u0442\u0435\u0441\u0442",
+        submit_answer: "\u041E\u0442\u043F\u0440\u0430\u0432\u0438\u0442\u044C \u043E\u0442\u0432\u0435\u0442",
+        next: "\u0414\u0430\u043B\u0435\u0435",
+        previous: "\u041D\u0430\u0437\u0430\u0434",
+        passed: "\u0421\u0434\u0430\u043D\u043E!",
+        keep_studying: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0439\u0442\u0435 \u0443\u0447\u0438\u0442\u044C\u0441\u044F",
+        reading: "\u0427\u0442\u0435\u043D\u0438\u0435",
+        writing_dictation: "\u041F\u0438\u0441\u044C\u043C\u043E (\u0414\u0438\u043A\u0442\u0430\u043D\u0442)",
+        speaking: "\u0420\u0430\u0437\u0433\u043E\u0432\u043E\u0440",
+        full_mock_test: "\u041F\u043E\u043B\u043D\u044B\u0439 \u043F\u0440\u043E\u0431\u043D\u044B\u0439 \u0442\u0435\u0441\u0442",
+        listen_first: "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0441\u043B\u0443\u0448\u0430\u0439\u0442\u0435",
+        play_sentence: "\u0412\u043E\u0441\u043F\u0440\u043E\u0438\u0437\u0432\u0435\u0441\u0442\u0438 \u043F\u0440\u0435\u0434\u043B\u043E\u0436\u0435\u043D\u0438\u0435",
+        check: "\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C",
+        type_what_you_hear: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u043E, \u0447\u0442\u043E \u0441\u043B\u044B\u0448\u0438\u0442\u0435...",
+        eligibility_self_check: "\u0421\u0430\u043C\u043E\u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044F",
+        ready_to_apply: "\u0413\u043E\u0442\u043E\u0432\u044B \u043F\u043E\u0434\u0430\u0432\u0430\u0442\u044C!",
+        needs_attention: "\u0422\u0440\u0435\u0431\u0443\u0435\u0442 \u0432\u043D\u0438\u043C\u0430\u043D\u0438\u044F",
+        issues_found: "\u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u044B \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u044B",
+        not_legal_advice: "\u042D\u0442\u043E \u043D\u0435 \u044E\u0440\u0438\u0434\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043A\u043E\u043D\u0441\u0443\u043B\u044C\u0442\u0430\u0446\u0438\u044F",
+        common_questions: "\u0427\u0430\u0441\u0442\u043E \u0437\u0430\u0434\u0430\u0432\u0430\u0435\u043C\u044B\u0435 \u0432\u043E\u043F\u0440\u043E\u0441\u044B",
+        find_help: "\u041D\u0430\u0439\u0434\u0438\u0442\u0435 \u043F\u043E\u043C\u043E\u0449\u044C \u0440\u044F\u0434\u043E\u043C",
+        non_profit_legal: "\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u0430\u044F \u044E\u0440\u0438\u0434\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043F\u043E\u043C\u043E\u0449\u044C",
+        immigration_attorneys: "\u0418\u043C\u043C\u0438\u0433\u0440\u0430\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u0430\u0434\u0432\u043E\u043A\u0430\u0442\u044B",
+        start_over: "\u041D\u0430\u0447\u0430\u0442\u044C \u0437\u0430\u043D\u043E\u0432\u043E",
+        retake: "\u041F\u0435\u0440\u0435\u0441\u0434\u0430\u0442\u044C",
+        continue_text: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C",
+        resume: "\u0412\u043E\u0437\u043E\u0431\u043D\u043E\u0432\u0438\u0442\u044C",
+        save: "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C",
+        saved: "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E",
+        continue_where_left_off: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0441 \u0442\u043E\u0433\u043E \u043C\u0435\u0441\u0442\u0430?",
+        yes: "\u0414\u0430",
+        no_start_fresh: "\u041D\u0430\u0447\u0430\u0442\u044C \u0437\u0430\u043D\u043E\u0432\u043E",
+        english_done: "\u0410\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u0438\u0439 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D",
+        wrong_password: "\u041D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043F\u0430\u0440\u043E\u043B\u044C",
+        username_taken: "\u0418\u043C\u044F \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F \u0437\u0430\u043D\u044F\u0442\u043E",
+        passwords_no_match: "\u041F\u0430\u0440\u043E\u043B\u0438 \u043D\u0435 \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u044E\u0442",
+        fields_required: "\u0412\u0441\u0435 \u043F\u043E\u043B\u044F \u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B",
+    },
+    };
+
+    function t(key) { return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key; }
+
+    function applyTranslations() {
+        $$("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            el.textContent = t(key);
+        });
+        $$("[data-i18n-html]").forEach(el => {
+            const key = el.getAttribute("data-i18n-html");
+            el.innerHTML = t(key);
+        });
+        // Update placeholders
+        const writingInput = $("#writingInput");
+        if (writingInput) writingInput.placeholder = t("type_what_you_hear");
+        // RTL for Arabic
+        document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+    }
+
+    function setLanguage(code) {
+        currentLang = code;
+        GLS.set("lang", code);
+        applyTranslations();
+        // Update language labels
+        const lang = LANGUAGES.find(l => l.code === code);
+        if (lang) {
+            const ll = $("#landingLangLabel");
+            if (ll) ll.textContent = lang.name;
+        }
+        // Close dropdowns
+        hide($("#landingLangDropdown"));
+        hide($("#headerLangDropdown"));
+    }
+
+    function buildLangDropdown(containerId) {
+        const container = $(`#${containerId}`);
+        container.innerHTML = "";
+        LANGUAGES.forEach(lang => {
+            const btn = document.createElement("button");
+            btn.className = "lang-dropdown-item" + (lang.code === currentLang ? " active" : "");
+            btn.innerHTML = `<span>${lang.flag}</span> <span>${lang.name}</span> <span class="lang-check">\u2713</span>`;
+            btn.addEventListener("click", (e) => { e.stopPropagation(); setLanguage(lang.code); });
+            container.appendChild(btn);
+        });
+    }
 
     // ---- State ----
     let currentScreen = "home"; // home, civicsSelection, studyApp, englishSelection, englishPractice, eligibilityCheck
@@ -63,7 +906,7 @@
     // Voice / Sound
     let selectedVoice = null;
     let voicesLoaded = false;
-    let soundEnabled = LS.get("sound", true);
+    let soundEnabled = GLS.get("sound", true);
     let audioCtx = null;
 
     // English state
@@ -87,12 +930,20 @@
     let mockTimerInterval = null;
     let mockTimeLeft = 0;
 
-    // Progress tracking
-    let engReadingCompleted = new Set(LS.get("eng_reading_done", []));
-    let engWritingCompleted = new Set(LS.get("eng_writing_done", []));
-    let engSpeakingCompleted = new Set(LS.get("eng_speaking_done", []));
-    let engReadingPerfect = LS.get("eng_reading_perfect", 0);
-    let engWritingPerfect = LS.get("eng_writing_perfect", 0);
+    // Progress tracking (re-loaded on profile switch)
+    let engReadingCompleted = new Set();
+    let engWritingCompleted = new Set();
+    let engSpeakingCompleted = new Set();
+    let engReadingPerfect = 0;
+    let engWritingPerfect = 0;
+
+    function reloadProfileState() {
+        engReadingCompleted = new Set(LS.get("eng_reading_done", []));
+        engWritingCompleted = new Set(LS.get("eng_writing_done", []));
+        engSpeakingCompleted = new Set(LS.get("eng_speaking_done", []));
+        engReadingPerfect = LS.get("eng_reading_perfect", 0);
+        engWritingPerfect = LS.get("eng_writing_perfect", 0);
+    }
 
     // Achievements
     const ACHIEVEMENTS = [
@@ -123,26 +974,36 @@
     // ================================================================
 
     function init() {
+        // Load saved language
+        currentLang = GLS.get("lang", "en");
+
         initDarkMode();
         initVoices();
         initSoundToggle();
         initModals();
-        initNavigation();
-        updateStreak();
-        renderHome();
+        initLanding();
+        initLanguageSelectors();
+        initUserMenu();
         loadEnglishData();
+
+        // Check if already logged in
+        if (currentUser) {
+            enterApp();
+        } else {
+            show($("#landingPage"));
+        }
     }
 
     // ---- Dark Mode ----
     function initDarkMode() {
-        const dm = LS.get("darkMode", false);
+        const dm = GLS.get("darkMode", false);
         if (dm) document.documentElement.setAttribute("data-theme", "dark");
         updateDarkModeIcons();
         $("#darkModeToggle").addEventListener("click", () => {
             const isDark = document.documentElement.getAttribute("data-theme") === "dark";
             if (isDark) document.documentElement.removeAttribute("data-theme");
             else document.documentElement.setAttribute("data-theme", "dark");
-            LS.set("darkMode", !isDark);
+            GLS.set("darkMode", !isDark);
             updateDarkModeIcons();
         });
     }
@@ -162,7 +1023,7 @@
             if (!voices.length) return;
             voicesLoaded = true;
             sel.innerHTML = "";
-            const saved = LS.get("voice", "");
+            const saved = GLS.get("voice", "");
             const enVoices = voices.filter(v => v.lang.startsWith("en"));
             const list = enVoices.length ? enVoices : voices;
             list.forEach((v, i) => {
@@ -181,7 +1042,7 @@
             const enVoices = voices.filter(v => v.lang.startsWith("en"));
             const list = enVoices.length ? enVoices : voices;
             selectedVoice = list[sel.selectedIndex] || null;
-            if (selectedVoice) LS.set("voice", selectedVoice.name);
+            if (selectedVoice) GLS.set("voice", selectedVoice.name);
         });
     }
 
@@ -192,7 +1053,7 @@
         btn.addEventListener("click", () => {
             soundEnabled = !soundEnabled;
             btn.setAttribute("aria-checked", soundEnabled ? "true" : "false");
-            LS.set("sound", soundEnabled);
+            GLS.set("sound", soundEnabled);
         });
     }
     function playSound(type) {
@@ -261,10 +1122,185 @@
     }
 
     // ================================================================
+    //  LANDING PAGE / AUTH
+    // ================================================================
+
+    function initLanding() {
+        $("#landingGuestBtn").addEventListener("click", () => loginAs("guest"));
+        $("#landingSignInBtn").addEventListener("click", () => {
+            const authCard = $("#authCard");
+            if (authCard.style.display === "none") {
+                show(authCard);
+                hide($("#landingSignInBtn"));
+            }
+        });
+        // Auth tabs
+        $("#authTabSignIn").addEventListener("click", () => {
+            $("#authTabSignIn").classList.add("active");
+            $("#authTabCreate").classList.remove("active");
+            show($("#authSignInForm"));
+            hide($("#authCreateForm"));
+        });
+        $("#authTabCreate").addEventListener("click", () => {
+            $("#authTabCreate").classList.add("active");
+            $("#authTabSignIn").classList.remove("active");
+            hide($("#authSignInForm"));
+            show($("#authCreateForm"));
+        });
+        // Sign in
+        $("#authSignInSubmit").addEventListener("click", doSignIn);
+        $("#authSignInPass").addEventListener("keydown", e => { if (e.key === "Enter") doSignIn(); });
+        // Create account
+        $("#authCreateSubmit").addEventListener("click", doCreateAccount);
+        $("#authCreateConfirm").addEventListener("keydown", e => { if (e.key === "Enter") doCreateAccount(); });
+    }
+
+    function doSignIn() {
+        const username = $("#authSignInUser").value.trim().toLowerCase();
+        const password = $("#authSignInPass").value;
+        const errorEl = $("#authSignInError");
+        if (!username || !password) { errorEl.textContent = t("fields_required"); return; }
+        const users = getUsers();
+        if (!users[username]) { errorEl.textContent = t("wrong_password"); return; }
+        if (users[username].passwordHash !== simpleHash(password)) { errorEl.textContent = t("wrong_password"); return; }
+        errorEl.textContent = "";
+        loginAs(username);
+    }
+
+    function doCreateAccount() {
+        const display = $("#authCreateDisplay").value.trim();
+        const username = $("#authCreateUser").value.trim().toLowerCase();
+        const password = $("#authCreatePass").value;
+        const confirm = $("#authCreateConfirm").value;
+        const errorEl = $("#authCreateError");
+        if (!display || !username || !password || !confirm) { errorEl.textContent = t("fields_required"); return; }
+        if (password !== confirm) { errorEl.textContent = t("passwords_no_match"); return; }
+        const users = getUsers();
+        if (users[username]) { errorEl.textContent = t("username_taken"); return; }
+        users[username] = { displayName: display, passwordHash: simpleHash(password) };
+        saveUsers(users);
+        errorEl.textContent = "";
+        loginAs(username);
+    }
+
+    function loginAs(username) {
+        currentUser = username;
+        setCurrentUser(username);
+        enterApp();
+    }
+
+    function enterApp() {
+        hide($("#landingPage"));
+        show($("#mainHeader"));
+        show($("#mainFooter"));
+        reloadProfileState();
+        updateUserUI();
+        initNavigation();
+        updateStreak();
+        renderHome();
+        show($("#homeScreen"));
+        applyTranslations();
+    }
+
+    function signOut() {
+        currentUser = "";
+        setCurrentUser("");
+        navigationStack = [];
+        currentScreen = "home";
+        // Hide app, show landing
+        hide($("#mainHeader"));
+        hide($("#mainFooter"));
+        hide($("#homeScreen"));
+        hide($("#civicsSelection"));
+        hide($("#studyApp"));
+        hide($("#englishSelection"));
+        hide($("#englishPractice"));
+        hide($("#eligibilityCheck"));
+        // Reset auth forms
+        const ac = $("#authCard");
+        if (ac) { hide(ac); show($("#landingSignInBtn")); }
+        $("#authSignInUser").value = "";
+        $("#authSignInPass").value = "";
+        $("#authSignInError").textContent = "";
+        $("#authCreateDisplay").value = "";
+        $("#authCreateUser").value = "";
+        $("#authCreatePass").value = "";
+        $("#authCreateConfirm").value = "";
+        $("#authCreateError").textContent = "";
+        show($("#landingPage"));
+        applyTranslations();
+    }
+
+    function updateUserUI() {
+        const isGuest = currentUser === "guest";
+        const users = getUsers();
+        let displayName = t("guest");
+        let initial = "G";
+        if (!isGuest && users[currentUser]) {
+            displayName = users[currentUser].displayName || currentUser;
+            initial = displayName.charAt(0).toUpperCase();
+        }
+        const avatarInit = $("#userAvatarInitial");
+        if (avatarInit) avatarInit.textContent = initial;
+        const ddName = $("#userDropdownName");
+        if (ddName) ddName.textContent = displayName;
+    }
+
+    // ---- Language Selectors ----
+    function initLanguageSelectors() {
+        buildLangDropdown("landingLangDropdown");
+        buildLangDropdown("headerLangDropdown");
+
+        // Landing language button
+        $("#landingLangBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            const dd = $("#landingLangDropdown");
+            if (dd.style.display === "none") { buildLangDropdown("landingLangDropdown"); show(dd); }
+            else hide(dd);
+        });
+        // Header language button
+        $("#headerLangBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            const dd = $("#headerLangDropdown");
+            if (dd.style.display === "none") { buildLangDropdown("headerLangDropdown"); show(dd); }
+            else hide(dd);
+        });
+        // Close dropdowns on outside click
+        document.addEventListener("click", () => {
+            hide($("#landingLangDropdown"));
+            hide($("#headerLangDropdown"));
+            hide($("#userDropdown"));
+        });
+
+        // Set initial language label
+        const lang = LANGUAGES.find(l => l.code === currentLang);
+        if (lang) {
+            const ll = $("#landingLangLabel");
+            if (ll) ll.textContent = lang.name;
+        }
+        applyTranslations();
+    }
+
+    // ---- User Menu ----
+    function initUserMenu() {
+        $("#userAvatarBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            const dd = $("#userDropdown");
+            if (dd.style.display === "none") show(dd);
+            else hide(dd);
+        });
+        $("#userSignOutBtn").addEventListener("click", () => { hide($("#userDropdown")); signOut(); });
+        $("#userSwitchBtn").addEventListener("click", () => { hide($("#userDropdown")); signOut(); });
+    }
+
+    // ================================================================
     //  NAVIGATION
     // ================================================================
 
+    let navigationInitialized = false;
     function initNavigation() {
+        if (navigationInitialized) return;
+        navigationInitialized = true;
         // Brand = home
         $("#brandHome").addEventListener("click", goHome);
         $("#brandHome").addEventListener("keydown", (e) => { if (e.key === "Enter") goHome(); });
@@ -275,7 +1311,20 @@
         // Home cards
         $("#civicsCard").addEventListener("click", () => navigateTo("civicsSelection"));
         $("#englishCard").addEventListener("click", () => navigateTo("englishSelection"));
-        $("#eligibilityCard").addEventListener("click", () => { eligStartOver(); navigateTo("eligibilityCheck"); });
+        $("#eligibilityCard").addEventListener("click", () => {
+            const saved = LS.get("elig_inprogress", null);
+            if (saved && saved.step > 0 && saved.step < 11) {
+                eligStep = saved.step;
+                eligResults = saved.results || [];
+                eligTrack = saved.track || 5;
+                eligIsMale = saved.isMale || false;
+                navigateTo("eligibilityCheck");
+                eligRenderStep();
+            } else {
+                eligStartOver();
+                navigateTo("eligibilityCheck");
+            }
+        });
 
         // Civics test selection
         $$(".test-card[data-test]").forEach(card => {
@@ -318,6 +1367,9 @@
 
     function showScreen(screen) {
         currentScreen = screen;
+        // Save current screen for resume
+        LS.set("lastScreen", screen);
+
         // Hide all screens
         hide($("#homeScreen"));
         hide($("#civicsSelection"));
@@ -425,7 +1477,7 @@
         const civicsEl = $("#civicsStatus");
         if (civicsEl) {
             if (hasCivicsPass()) {
-                civicsEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Passed!</span>';
+                civicsEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> ' + t("passed") + '</span>';
             } else {
                 civicsEl.innerHTML = '';
             }
@@ -449,11 +1501,11 @@
             if (!eligStatus.done) {
                 eligEl.innerHTML = '';
             } else if (eligStatus.allGreen) {
-                eligEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Ready to Apply!</span>';
+                eligEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> ' + t("ready_to_apply") + '</span>';
             } else if (eligStatus.reds > 0) {
-                eligEl.innerHTML = '<span class="status-badge status-badge--fail">Issues Found</span>';
+                eligEl.innerHTML = '<span class="status-badge status-badge--fail">' + t("issues_found") + '</span>';
             } else {
-                eligEl.innerHTML = '<span class="status-badge status-badge--warn">Needs Attention</span>';
+                eligEl.innerHTML = '<span class="status-badge status-badge--warn">' + t("needs_attention") + '</span>';
             }
         }
     }
@@ -607,10 +1659,10 @@
         const totalPracticed = engReadingCompleted.size + engWritingCompleted.size + engSpeakingCompleted.size;
 
         grid.innerHTML = `
-            <div class="stat-card"><div class="stat-card-number">${totalTests}</div><div class="stat-card-label">Tests Taken</div></div>
-            <div class="stat-card"><div class="stat-card-number">${avgScore}%</div><div class="stat-card-label">Avg Score</div></div>
-            <div class="stat-card"><div class="stat-card-number">${streak}</div><div class="stat-card-label">Day Streak</div></div>
-            <div class="stat-card"><div class="stat-card-number">${totalPracticed}</div><div class="stat-card-label">English Done</div></div>
+            <div class="stat-card"><div class="stat-card-number">${totalTests}</div><div class="stat-card-label">${t("tests_taken")}</div></div>
+            <div class="stat-card"><div class="stat-card-number">${avgScore}%</div><div class="stat-card-label">${t("avg_score")}</div></div>
+            <div class="stat-card"><div class="stat-card-number">${streak}</div><div class="stat-card-label">${t("day_streak")}</div></div>
+            <div class="stat-card"><div class="stat-card-number">${totalPracticed}</div><div class="stat-card-label">${t("english_done")}</div></div>
         `;
     }
 
@@ -749,6 +1801,14 @@
         fcIndex = 0; fcFlipped = false;
         fcCorrectCount = 0; fcWrongCount = 0; fcWeakFilterActive = false;
 
+        // Restore saved flashcard state
+        const savedFc = LS.get(`fc_state_${testVersion}`, null);
+        if (savedFc && savedFc.index < fcFiltered.length) {
+            fcIndex = savedFc.index;
+            fcCorrectCount = savedFc.correct || 0;
+            fcWrongCount = savedFc.wrong || 0;
+        }
+
         renderFlashcard();
 
         $("#flashcardWrapper").addEventListener("click", flipCard);
@@ -846,6 +1906,11 @@
         fcIndex = (fcIndex + dir + fcFiltered.length) % fcFiltered.length;
         fcFlipped = false;
         renderFlashcard();
+        saveFcState();
+    }
+
+    function saveFcState() {
+        LS.set(`fc_state_${testVersion}`, { index: fcIndex, correct: fcCorrectCount, wrong: fcWrongCount });
     }
 
     function assessCard(correct) {
@@ -952,6 +2017,55 @@
         $("#practiceBegin").addEventListener("click", startPracticeTest);
         $("#practiceSubmitAnswer").addEventListener("click", submitPracticeAnswer);
         $("#practiceRetake").addEventListener("click", retakePractice);
+
+        // Check for saved in-progress test
+        checkResumeTest();
+    }
+
+    function checkResumeTest() {
+        const saved = LS.get(`practice_inprogress_${testVersion}`, null);
+        if (!saved || !saved.questions || !saved.questions.length) return;
+        const startDiv = $("#practiceStart");
+        // Insert a resume prompt before the begin button
+        const existingPrompt = startDiv.querySelector(".resume-prompt");
+        if (existingPrompt) existingPrompt.remove();
+        const prompt = document.createElement("div");
+        prompt.className = "resume-prompt";
+        prompt.innerHTML = `<span class="resume-prompt-text">${t("continue_where_left_off")} (${saved.index}/${saved.questions.length})</span>`
+            + `<button class="resume-prompt-btn resume-prompt-btn--yes">${t("resume")}</button>`
+            + `<button class="resume-prompt-btn resume-prompt-btn--no">${t("no_start_fresh")}</button>`;
+        const beginBtn = $("#practiceBegin");
+        startDiv.querySelector(".practice-info-card").insertBefore(prompt, beginBtn);
+        prompt.querySelector(".resume-prompt-btn--yes").addEventListener("click", () => {
+            resumePracticeTest(saved);
+            prompt.remove();
+        });
+        prompt.querySelector(".resume-prompt-btn--no").addEventListener("click", () => {
+            LS.set(`practice_inprogress_${testVersion}`, null);
+            prompt.remove();
+        });
+    }
+
+    function resumePracticeTest(saved) {
+        practiceQuestions = saved.questions;
+        practiceIndex = saved.index;
+        practiceScore = saved.score;
+        practiceAnswers = saved.answers || [];
+        practiceQuestionCount = saved.questions.length;
+        practiceTimerEnabled = saved.timerEnabled || false;
+        practiceStreakMode = saved.streakMode || false;
+        practiceStreak = saved.streak || 0;
+        practiceTotalAsked = saved.totalAsked || saved.index;
+        practiceSelectedChoice = null;
+
+        hide($("#practiceStart"));
+        show($("#practiceQuestion"));
+        hide($("#practiceResults"));
+
+        if (practiceStreakMode) show($("#streakCounter"));
+        else hide($("#streakCounter"));
+
+        renderPracticeQuestion();
     }
 
     function updatePassInfo() {
@@ -1099,6 +2213,18 @@
             correct
         });
 
+        // Save in-progress state
+        LS.set(`practice_inprogress_${testVersion}`, {
+            questions: practiceQuestions,
+            index: practiceIndex + 1,
+            score: practiceScore,
+            answers: practiceAnswers,
+            timerEnabled: practiceTimerEnabled,
+            streakMode: practiceStreakMode,
+            streak: practiceStreak,
+            totalAsked: practiceTotalAsked,
+        });
+
         if (practiceStreakMode) updateStreakDisplay();
 
         // Check streak win
@@ -1128,6 +2254,7 @@
 
     function finishPracticeTest() {
         clearInterval(practiceTimerInterval);
+        LS.set(`practice_inprogress_${testVersion}`, null);
         hide($("#practiceQuestion"));
         show($("#practiceResults"));
 
@@ -1141,7 +2268,7 @@
         $("#resultsCheckmark").textContent = pass ? "\u{2705}" : "\u{274C}";
         $("#resultsScore").textContent = `${practiceScore} / ${total} (${pct}%)`;
         $("#resultsScore").style.color = pass ? "var(--success)" : "var(--error)";
-        $("#resultsStatus").textContent = pass ? "PASSED!" : "Keep Studying";
+        $("#resultsStatus").textContent = pass ? t("passed") : t("keep_studying");
         $("#resultsStatus").style.color = pass ? "var(--success)" : "var(--error)";
 
         let statsHtml = "";
@@ -1443,7 +2570,8 @@
     function initReading() {
         show($("#engReading"));
         engReadingItems = [...englishData.reading];
-        engReadingIndex = 0;
+        engReadingIndex = LS.get("eng_reading_index", 0);
+        if (engReadingIndex >= engReadingItems.length) engReadingIndex = 0;
         renderReadingSentence();
 
         // Remove old listeners by cloning
@@ -1452,8 +2580,8 @@
             speak(s.sentence, 0.85);
         });
         replaceClickHandler("readingMic", startReadingRecognition);
-        replaceClickHandler("readingPrev", () => { engReadingIndex = Math.max(0, engReadingIndex - 1); renderReadingSentence(); });
-        replaceClickHandler("readingNext", () => { engReadingIndex = Math.min(engReadingItems.length - 1, engReadingIndex + 1); renderReadingSentence(); });
+        replaceClickHandler("readingPrev", () => { engReadingIndex = Math.max(0, engReadingIndex - 1); LS.set("eng_reading_index", engReadingIndex); renderReadingSentence(); });
+        replaceClickHandler("readingNext", () => { engReadingIndex = Math.min(engReadingItems.length - 1, engReadingIndex + 1); LS.set("eng_reading_index", engReadingIndex); renderReadingSentence(); });
         replaceClickHandler("readingShuffle", () => {
             shuffleArray(engReadingItems);
             engReadingIndex = 0;
@@ -1520,14 +2648,15 @@
     function initWriting() {
         show($("#engWriting"));
         engWritingItems = [...englishData.writing];
-        engWritingIndex = 0;
+        engWritingIndex = LS.get("eng_writing_index", 0);
+        if (engWritingIndex >= engWritingItems.length) engWritingIndex = 0;
         renderWritingSentence();
 
         replaceClickHandler("writingPlay", () => playWritingSentence());
         replaceClickHandler("writingReplay", () => playWritingSentence());
         replaceClickHandler("writingCheck", checkWriting);
-        replaceClickHandler("writingPrev", () => { engWritingIndex = Math.max(0, engWritingIndex - 1); renderWritingSentence(); });
-        replaceClickHandler("writingNext", () => { engWritingIndex = Math.min(engWritingItems.length - 1, engWritingIndex + 1); renderWritingSentence(); });
+        replaceClickHandler("writingPrev", () => { engWritingIndex = Math.max(0, engWritingIndex - 1); LS.set("eng_writing_index", engWritingIndex); renderWritingSentence(); });
+        replaceClickHandler("writingNext", () => { engWritingIndex = Math.min(engWritingItems.length - 1, engWritingIndex + 1); LS.set("eng_writing_index", engWritingIndex); renderWritingSentence(); });
         replaceClickHandler("writingShuffle", () => {
             shuffleArray(engWritingItems);
             engWritingIndex = 0;
@@ -1583,12 +2712,13 @@
     function initSpeaking() {
         show($("#engSpeaking"));
         engSpeakingItems = [...englishData.speaking];
-        engSpeakingIndex = 0;
+        engSpeakingIndex = LS.get("eng_speaking_index", 0);
+        if (engSpeakingIndex >= engSpeakingItems.length) engSpeakingIndex = 0;
         renderSpeakingPrompt();
 
         replaceClickHandler("speakingMic", startSpeakingRecognition);
-        replaceClickHandler("speakingPrev", () => { engSpeakingIndex = Math.max(0, engSpeakingIndex - 1); renderSpeakingPrompt(); });
-        replaceClickHandler("speakingNext", () => { engSpeakingIndex = Math.min(engSpeakingItems.length - 1, engSpeakingIndex + 1); renderSpeakingPrompt(); });
+        replaceClickHandler("speakingPrev", () => { engSpeakingIndex = Math.max(0, engSpeakingIndex - 1); LS.set("eng_speaking_index", engSpeakingIndex); renderSpeakingPrompt(); });
+        replaceClickHandler("speakingNext", () => { engSpeakingIndex = Math.min(engSpeakingItems.length - 1, engSpeakingIndex + 1); LS.set("eng_speaking_index", engSpeakingIndex); renderSpeakingPrompt(); });
         replaceClickHandler("speakingShuffle", () => {
             shuffleArray(engSpeakingItems);
             engSpeakingIndex = 0;
@@ -2018,6 +3148,7 @@
         eligResults = [];
         eligTrack = 5;
         eligIsMale = false;
+        LS.set("elig_inprogress", null);
         eligRenderStep();
     }
 
@@ -2124,7 +3255,11 @@
                     + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
                 // Store result
                 eligResults[eligStep] = { label: ELIG_LABELS[eligStep], color: opt.color, text: opt.msg };
-                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                $("#eligNextBtn").addEventListener("click", () => {
+                    eligStep++;
+                    LS.set("elig_inprogress", { step: eligStep, results: eligResults, track: eligTrack, isMale: eligIsMale });
+                    eligRenderStep();
+                });
                 area.scrollIntoView({ behavior: "smooth", block: "nearest" });
             });
         });
