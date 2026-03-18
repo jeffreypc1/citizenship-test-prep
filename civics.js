@@ -3592,8 +3592,13 @@
             btn.addEventListener("click", () => {
                 const idx = parseInt(btn.dataset.idx);
                 const opt = options[idx];
-                // Disable all options
-                content.querySelectorAll(".elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                // Highlight selected, reset others (allow re-selection)
+                content.querySelectorAll(".elig-option").forEach(b => {
+                    b.classList.remove("elig-option--selected");
+                    b.style.opacity = "0.6";
+                    b.style.borderColor = "";
+                });
+                btn.classList.add("elig-option--selected");
                 btn.style.opacity = "1";
                 btn.style.borderColor = opt.color === "green" ? "var(--success)" : opt.color === "yellow" ? "var(--warning)" : "var(--error)";
                 if (opt.fn) opt.fn();
@@ -3629,7 +3634,7 @@
 
         content.querySelectorAll(".elig-option").forEach(btn => {
             btn.addEventListener("click", () => {
-                content.querySelectorAll(".elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                content.querySelectorAll(".elig-option").forEach(b => { b.classList.remove("elig-option--selected"); b.style.opacity = "0.6"; b.style.borderColor = ""; });
                 btn.style.opacity = "1";
                 if (btn.dataset.choice === "no") {
                     eligIsMale = false;
@@ -3657,7 +3662,7 @@
 
         area.querySelectorAll("#eligSSOptions2 .elig-option").forEach(btn => {
             btn.addEventListener("click", () => {
-                area.querySelectorAll("#eligSSOptions2 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                area.querySelectorAll("#eligSSOptions2 .elig-option").forEach(b => { b.classList.remove("elig-option--selected"); b.style.opacity = "0.6"; b.style.borderColor = ""; });
                 btn.style.opacity = "1";
                 const area2 = $("#eligSSArea2");
                 if (btn.dataset.choice === "no") {
@@ -3683,7 +3688,7 @@
 
         container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(btn => {
             btn.addEventListener("click", () => {
-                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.classList.remove("elig-option--selected"); b.style.opacity = "0.6"; b.style.borderColor = ""; });
                 btn.style.opacity = "1";
                 const area3 = $("#eligSSArea3");
                 if (btn.dataset.choice === "yes") {
@@ -3709,7 +3714,7 @@
 
         container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(btn => {
             btn.addEventListener("click", () => {
-                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.classList.remove("elig-option--selected"); b.style.opacity = "0.6"; b.style.borderColor = ""; });
                 btn.style.opacity = "1";
                 const area3 = $("#eligSSArea3");
                 if (btn.dataset.choice === "yes") {
