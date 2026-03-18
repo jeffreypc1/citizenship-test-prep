@@ -1,13 +1,30 @@
 /* ============================================================
-   USCIS Civics Test Practice — JavaScript
-   Features: voice selection, self-assessment, streak mode,
-   score history, dark mode, sound effects, keyboard shortcuts
+   USCIS Practice Test — JavaScript
+   Civics (flash cards, listen, practice, study, history)
+   + English (reading, writing, speaking, mock test)
+   + Gamification (streaks, achievements, progress)
    ============================================================ */
 
 (function () {
     "use strict";
 
+    // ---- DOM Helpers ----
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const show = (el) => { if (el) el.style.display = ""; };
+    const hide = (el) => { if (el) el.style.display = "none"; };
+
+    // ---- Storage ----
+    const LS = {
+        get(k, fallback) { try { const v = localStorage.getItem("civics_" + k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
+        set(k, v) { try { localStorage.setItem("civics_" + k, JSON.stringify(v)); } catch {} },
+    };
+
     // ---- State ----
+    let currentScreen = "home"; // home, civicsSelection, studyApp, englishSelection, englishPractice
+    let navigationStack = [];
+
+    // Civics state
     let questions = [];
     let testVersion = null;
     let currentMode = "flashcards";
@@ -43,1457 +60,1772 @@
     // Study state
     let knownQuestions = new Set();
 
-    // Voice state
+    // Voice / Sound
     let selectedVoice = null;
     let voicesLoaded = false;
-
-    // Sound effects
-    let soundEnabled = true;
+    let soundEnabled = LS.get("sound", true);
     let audioCtx = null;
 
-    // ---- DOM Helpers ----
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => document.querySelectorAll(sel);
+    // English state
+    let englishData = null;
+    let engMode = null; // reading, writing, speaking, mock
+    let engReadingItems = [];
+    let engReadingIndex = 0;
+    let engWritingItems = [];
+    let engWritingIndex = 0;
+    let engSpeakingItems = [];
+    let engSpeakingIndex = 0;
+    let recognition = null;
+    let isRecording = false;
 
-    // ---- Storage keys ----
-    function storageKey(suffix) {
-        return "civics_" + testVersion + "_" + suffix;
-    }
+    // Mock test state
+    let mockPhase = null; // "reading", "writing", "speaking", "results"
+    let mockStep = 0;
+    let mockReadingSentences = [];
+    let mockWritingSentences = [];
+    let mockScores = { reading: [], writing: [], speaking: 0 };
+    let mockTimerInterval = null;
+    let mockTimeLeft = 0;
 
-    function globalKey(suffix) {
-        return "civics_" + suffix;
-    }
+    // Progress tracking
+    let engReadingCompleted = new Set(LS.get("eng_reading_done", []));
+    let engWritingCompleted = new Set(LS.get("eng_writing_done", []));
+    let engSpeakingCompleted = new Set(LS.get("eng_speaking_done", []));
+    let engReadingPerfect = LS.get("eng_reading_perfect", 0);
+    let engWritingPerfect = LS.get("eng_writing_perfect", 0);
 
-    function loadKnown() {
-        try {
-            const data = localStorage.getItem(storageKey("known"));
-            if (data) knownQuestions = new Set(JSON.parse(data));
-        } catch (e) { /* ignore */ }
-    }
+    // Achievements
+    const ACHIEVEMENTS = [
+        { id: "first_steps", icon: "\u{1F476}", name: "First Steps", desc: "Completed 1 practice" },
+        { id: "streak_5", icon: "\u{1F525}", name: "5-Day Streak", desc: "Practiced 5 days in a row" },
+        { id: "civics_master", icon: "\u{1F3C6}", name: "Civics Master", desc: "Scored 100% on practice test" },
+        { id: "perfect_reader", icon: "\u{1F4D6}", name: "Perfect Reader", desc: "Read 10 sentences perfectly" },
+        { id: "dictation_pro", icon: "\u{270D}\u{FE0F}", name: "Dictation Pro", desc: "Wrote 10 sentences perfectly" },
+    ];
 
-    function saveKnown() {
-        try {
-            localStorage.setItem(storageKey("known"), JSON.stringify([...knownQuestions]));
-        } catch (e) { /* ignore */ }
-    }
+    // Quotes
+    const QUOTES = [
+        "\"The U.S. is a land of opportunity. Believe in your ability to succeed.\"",
+        "\"Every journey begins with a single step. Keep studying, you're doing great!\"",
+        "\"Citizenship is a commitment to this country and its values.\"",
+        "\"Your determination to learn is your greatest strength.\"",
+        "\"Practice makes progress. Every session brings you closer to your goal.\"",
+        "\"The future belongs to those who believe in the beauty of their dreams.\" \u2014 Eleanor Roosevelt",
+        "\"This nation was built by immigrants. You are part of that story.\"",
+        "\"Knowledge is power. The more you study, the more confident you'll feel.\"",
+    ];
 
-    // ---- Per-question performance (for flash cards) ----
-    function loadQuestionPerf() {
-        try {
-            const data = localStorage.getItem(storageKey("fc_perf"));
-            return data ? JSON.parse(data) : {};
-        } catch (e) { return {}; }
-    }
+    // ---- SpeechRecognition setup ----
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    function saveQuestionPerf(perf) {
-        try {
-            localStorage.setItem(storageKey("fc_perf"), JSON.stringify(perf));
-        } catch (e) { /* ignore */ }
-    }
+    // ================================================================
+    //  INITIALIZATION
+    // ================================================================
 
-    function recordFcPerf(qid, correct) {
-        const perf = loadQuestionPerf();
-        if (!perf[qid]) perf[qid] = { right: 0, wrong: 0 };
-        if (correct) perf[qid].right++;
-        else perf[qid].wrong++;
-        saveQuestionPerf(perf);
-    }
-
-    function getWeakQuestionIds() {
-        const perf = loadQuestionPerf();
-        const weak = [];
-        for (const [qid, stats] of Object.entries(perf)) {
-            if (stats.wrong > 0) weak.push(parseInt(qid, 10));
-        }
-        return weak;
-    }
-
-    // ---- Score History ----
-    function loadHistory() {
-        try {
-            const data = localStorage.getItem(storageKey("history"));
-            return data ? JSON.parse(data) : [];
-        } catch (e) { return []; }
-    }
-
-    function saveHistory(history) {
-        try {
-            localStorage.setItem(storageKey("history"), JSON.stringify(history));
-        } catch (e) { /* ignore */ }
-    }
-
-    function addHistoryEntry(entry) {
-        const history = loadHistory();
-        history.push(entry);
-        // Keep last 50
-        if (history.length > 50) history.splice(0, history.length - 50);
-        saveHistory(history);
+    function init() {
+        initDarkMode();
+        initVoices();
+        initSoundToggle();
+        initModals();
+        initNavigation();
+        updateStreak();
+        renderHome();
+        loadEnglishData();
     }
 
     // ---- Dark Mode ----
     function initDarkMode() {
-        const saved = localStorage.getItem(globalKey("dark_mode"));
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const dark = saved === "true" || (saved === null && prefersDark);
-        applyDarkMode(dark);
-
+        const dm = LS.get("darkMode", false);
+        if (dm) document.documentElement.setAttribute("data-theme", "dark");
+        updateDarkModeIcons();
         $("#darkModeToggle").addEventListener("click", () => {
             const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-            applyDarkMode(!isDark);
-            localStorage.setItem(globalKey("dark_mode"), (!isDark).toString());
+            if (isDark) document.documentElement.removeAttribute("data-theme");
+            else document.documentElement.setAttribute("data-theme", "dark");
+            LS.set("darkMode", !isDark);
+            updateDarkModeIcons();
         });
     }
-
-    function applyDarkMode(dark) {
-        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-        const sunIcon = $(".icon-sun");
-        const moonIcon = $(".icon-moon");
-        if (dark) {
-            sunIcon.style.display = "none";
-            moonIcon.style.display = "";
-        } else {
-            sunIcon.style.display = "";
-            moonIcon.style.display = "none";
-        }
+    function updateDarkModeIcons() {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const sun = $(".icon-sun");
+        const moon = $(".icon-moon");
+        if (sun) sun.style.display = isDark ? "none" : "";
+        if (moon) moon.style.display = isDark ? "" : "none";
     }
 
-    // ---- Voice Selection ----
-    function initVoiceSelection() {
-        const select = $("#voiceSelect");
-
-        function populateVoices() {
+    // ---- Voices ----
+    function initVoices() {
+        const sel = $("#voiceSelect");
+        function loadVoices() {
             const voices = speechSynthesis.getVoices();
             if (!voices.length) return;
             voicesLoaded = true;
-
-            select.innerHTML = "";
-            const defaultOpt = document.createElement("option");
-            defaultOpt.value = "";
-            defaultOpt.textContent = "Default voice";
-            select.appendChild(defaultOpt);
-
-            voices.forEach((voice, i) => {
+            sel.innerHTML = "";
+            const saved = LS.get("voice", "");
+            const enVoices = voices.filter(v => v.lang.startsWith("en"));
+            const list = enVoices.length ? enVoices : voices;
+            list.forEach((v, i) => {
                 const opt = document.createElement("option");
                 opt.value = i;
-                opt.textContent = voice.name + " (" + voice.lang + ")";
-                if (voice.default) opt.textContent += " - Default";
-                select.appendChild(opt);
+                opt.textContent = `${v.name} (${v.lang})`;
+                if (v.name === saved) { opt.selected = true; selectedVoice = v; }
+                sel.appendChild(opt);
             });
-
-            // Restore saved voice
-            const savedVoice = localStorage.getItem(globalKey("voice"));
-            if (savedVoice) {
-                const idx = voices.findIndex(v => v.name === savedVoice);
-                if (idx >= 0) {
-                    select.value = idx;
-                    selectedVoice = voices[idx];
-                }
-            }
+            if (!selectedVoice && list.length) selectedVoice = list[0];
         }
-
-        if ("speechSynthesis" in window) {
-            populateVoices();
-            speechSynthesis.onvoiceschanged = populateVoices;
-        }
-
-        select.addEventListener("change", () => {
+        speechSynthesis.addEventListener("voiceschanged", loadVoices);
+        loadVoices();
+        sel.addEventListener("change", () => {
             const voices = speechSynthesis.getVoices();
-            if (select.value === "") {
-                selectedVoice = null;
-                localStorage.removeItem(globalKey("voice"));
-            } else {
-                const idx = parseInt(select.value, 10);
-                selectedVoice = voices[idx] || null;
-                if (selectedVoice) {
-                    localStorage.setItem(globalKey("voice"), selectedVoice.name);
-                }
-            }
+            const enVoices = voices.filter(v => v.lang.startsWith("en"));
+            const list = enVoices.length ? enVoices : voices;
+            selectedVoice = list[sel.selectedIndex] || null;
+            if (selectedVoice) LS.set("voice", selectedVoice.name);
         });
     }
 
-    // ---- Sound Effects ----
-    function initSoundEffects() {
-        const saved = localStorage.getItem(globalKey("sound"));
-        soundEnabled = saved !== "false";
-        updateSoundToggle();
-
-        $("#soundToggle").addEventListener("click", () => {
+    // ---- Sound ----
+    function initSoundToggle() {
+        const btn = $("#soundToggle");
+        btn.setAttribute("aria-checked", soundEnabled ? "true" : "false");
+        btn.addEventListener("click", () => {
             soundEnabled = !soundEnabled;
-            localStorage.setItem(globalKey("sound"), soundEnabled.toString());
-            updateSoundToggle();
+            btn.setAttribute("aria-checked", soundEnabled ? "true" : "false");
+            LS.set("sound", soundEnabled);
         });
     }
-
-    function updateSoundToggle() {
-        const toggle = $("#soundToggle");
-        toggle.setAttribute("aria-checked", soundEnabled.toString());
-    }
-
-    function getAudioCtx() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        return audioCtx;
-    }
-
-    function playCorrectSound() {
+    function playSound(type) {
         if (!soundEnabled) return;
         try {
-            const ctx = getAudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
             osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-            gain.gain.setValueAtTime(0.12, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.3);
-        } catch (e) { /* ignore */ }
-    }
-
-    function playWrongSound() {
-        if (!soundEnabled) return;
-        try {
-            const ctx = getAudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(311.13, ctx.currentTime); // Eb4
-            osc.frequency.setValueAtTime(277.18, ctx.currentTime + 0.15); // Db4
-            gain.gain.setValueAtTime(0.12, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.3);
-        } catch (e) { /* ignore */ }
+            gain.connect(audioCtx.destination);
+            gain.gain.value = 0.15;
+            if (type === "correct") { osc.frequency.value = 880; osc.type = "sine"; }
+            else if (type === "wrong") { osc.frequency.value = 300; osc.type = "square"; }
+            else { osc.frequency.value = 660; osc.type = "sine"; }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        } catch {}
     }
 
     // ---- Modals ----
     function initModals() {
-        // Settings
-        $("#settingsToggle").addEventListener("click", () => {
-            $("#settingsModal").style.display = "";
-        });
-        $("#settingsClose").addEventListener("click", () => {
-            $("#settingsModal").style.display = "none";
-        });
-        $("#settingsModal").addEventListener("click", (e) => {
-            if (e.target === $("#settingsModal")) $("#settingsModal").style.display = "none";
-        });
-
-        // Shortcuts
-        $("#shortcutsToggle").addEventListener("click", () => {
-            $("#shortcutsModal").style.display = "";
-        });
-        $("#shortcutsClose").addEventListener("click", () => {
-            $("#shortcutsModal").style.display = "none";
-        });
-        $("#shortcutsModal").addEventListener("click", (e) => {
-            if (e.target === $("#shortcutsModal")) $("#shortcutsModal").style.display = "none";
-        });
-
-        // ESC to close
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                $("#settingsModal").style.display = "none";
-                $("#shortcutsModal").style.display = "none";
-            }
+        const pairs = [
+            ["settingsToggle", "settingsModal", "settingsClose"],
+            ["shortcutsToggle", "shortcutsModal", "shortcutsClose"],
+        ];
+        pairs.forEach(([toggleId, modalId, closeId]) => {
+            const toggle = $(`#${toggleId}`);
+            const modal = $(`#${modalId}`);
+            const close = $(`#${closeId}`);
+            toggle.addEventListener("click", () => { modal.style.display = modal.style.display === "none" ? "" : "none"; });
+            close.addEventListener("click", () => { modal.style.display = "none"; });
+            modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
         });
     }
 
-    // ---- Test Selection ----
-    function initTestSelection() {
-        $$(".test-card").forEach((card) => {
-            card.addEventListener("click", () => {
-                testVersion = card.dataset.test;
-                loadTest(testVersion);
-            });
-        });
-
-        $("#backToSelect").addEventListener("click", () => {
-            stopListening();
-            stopPracticeTimer();
-            $("#testSelection").style.display = "";
-            $("#studyApp").style.display = "none";
-            $("#backToSelect").style.display = "none";
-            testVersion = null;
-        });
-    }
-
-    async function loadTest(version) {
-        // Show skeleton
-        $("#skeletonLoader").style.display = "";
-        $("#testSelection").style.display = "none";
-
-        try {
-            const resp = await fetch("civics_" + version + ".json");
-            if (!resp.ok) throw new Error("Failed to load questions");
-            questions = await resp.json();
-        } catch (e) {
-            alert("Error loading questions. Please try again.");
-            $("#skeletonLoader").style.display = "none";
-            $("#testSelection").style.display = "";
-            return;
-        }
-
-        // Brief delay for visual feedback
-        await new Promise(r => setTimeout(r, 300));
-        $("#skeletonLoader").style.display = "none";
-
-        loadKnown();
-        populateCategoryFilters();
-        showStudyApp();
-        switchMode("flashcards");
-    }
-
-    function showStudyApp() {
-        $("#testSelection").style.display = "none";
-        $("#studyApp").style.display = "";
-        $("#backToSelect").style.display = "";
-    }
-
-    // ---- Categories ----
-    function getCategories() {
-        const cats = new Map();
-        questions.forEach((q) => {
-            const key = q.category;
-            if (!cats.has(key)) cats.set(key, new Set());
-            cats.get(key).add(q.subcategory);
-        });
-        return cats;
-    }
-
-    function populateCategoryFilters() {
-        const cats = getCategories();
-        const options = '<option value="all">All Categories</option>' +
-            Array.from(cats.keys()).map((c) =>
-                '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'
-            ).join("");
-
-        $("#fcCategoryFilter").innerHTML = options;
-        $("#listenCategoryFilter").innerHTML = options;
-    }
-
-    function filterByCategory(cat) {
-        if (cat === "all") return [...questions];
-        return questions.filter((q) => q.category === cat);
-    }
-
-    // ---- Mode Switching ----
-    function initModeTabs() {
-        $$(".mode-tab").forEach((tab) => {
-            tab.addEventListener("click", () => {
-                switchMode(tab.dataset.mode);
-            });
-        });
-    }
-
-    function switchMode(mode) {
-        stopListening();
-        currentMode = mode;
-
-        $$(".mode-tab").forEach((t) => {
-            const isActive = t.dataset.mode === mode;
-            t.classList.toggle("active", isActive);
-            t.setAttribute("aria-selected", isActive);
-        });
-
-        $$(".mode-panel").forEach((p) => {
-            p.classList.toggle("active", p.id === "panel-" + mode);
-        });
-
-        if (mode === "flashcards") initFlashcards();
-        else if (mode === "listen") initListen();
-        else if (mode === "practice") initPractice();
-        else if (mode === "study") initStudy();
-        else if (mode === "history") renderHistory();
-    }
-
-    // ---- Flash Cards ----
-    function initFlashcards() {
-        let filtered = filterByCategory($("#fcCategoryFilter").value);
-
-        if (fcWeakFilterActive) {
-            const weakIds = getWeakQuestionIds();
-            filtered = filtered.filter(q => weakIds.includes(q.id));
-        }
-
-        fcFiltered = filtered;
-        fcIndex = 0;
-        fcFlipped = false;
-        fcCorrectCount = 0;
-        fcWrongCount = 0;
-        renderFlashcard();
-        updateFcScore();
-    }
-
-    function renderFlashcard() {
-        if (!fcFiltered.length) {
-            $("#fcQuestion").textContent = fcWeakFilterActive
-                ? "No weak questions found! Great job!"
-                : "No questions in this category.";
-            $("#fcCategory").textContent = "";
-            $("#fcCategoryBack").textContent = "";
-            $("#fcAnswers").innerHTML = "";
-            $("#fcProgress").textContent = "0 / 0";
-            updateFcProgressBar();
-            return;
-        }
-        const q = fcFiltered[fcIndex];
-        fcFlipped = false;
-        $("#flashcard").classList.remove("flipped");
-        $("#fcAssessment").style.display = "none";
-
-        $("#fcCategory").textContent = q.subcategory || q.category;
-        $("#fcCategoryBack").textContent = q.subcategory || q.category;
-        $("#fcQuestion").textContent = q.id + ". " + q.question;
-        $("#fcProgress").textContent = (fcIndex + 1) + " / " + fcFiltered.length;
-
-        const answersEl = $("#fcAnswers");
-        answersEl.innerHTML = "";
-        q.answers.forEach((a) => {
-            const li = document.createElement("li");
-            li.textContent = a;
-            answersEl.appendChild(li);
-        });
-
-        if (q.variable) {
-            const li = document.createElement("li");
-            li.textContent = "(Answer varies by location/time)";
-            li.style.fontStyle = "italic";
-            li.style.opacity = "0.6";
-            answersEl.appendChild(li);
-        }
-
-        updateFcProgressBar();
-    }
-
-    function updateFcProgressBar() {
-        const bar = $("#fcProgressBar");
-        if (!fcFiltered.length) {
-            bar.style.width = "0%";
-            bar.setAttribute("aria-valuenow", 0);
-            return;
-        }
-        const pct = ((fcIndex + 1) / fcFiltered.length) * 100;
-        bar.style.width = pct + "%";
-        bar.setAttribute("aria-valuenow", Math.round(pct));
-    }
-
-    function updateFcScore() {
-        const el = $("#fcScoreDisplay");
-        if (fcCorrectCount === 0 && fcWrongCount === 0) {
-            el.textContent = "";
-        } else {
-            el.textContent = fcCorrectCount + " right, " + fcWrongCount + " wrong";
-        }
-    }
-
-    function flipCard() {
-        if (!fcFiltered.length) return;
-        fcFlipped = !fcFlipped;
-        $("#flashcard").classList.toggle("flipped", fcFlipped);
-
-        // Show assessment buttons when flipped to answer
-        if (fcFlipped) {
-            $("#fcAssessment").style.display = "";
-        } else {
-            $("#fcAssessment").style.display = "none";
-        }
-    }
-
-    function fcNavigate(dir) {
-        if (!fcFiltered.length) return;
-        // Stop any active reading
-        if (fcReadingActive) {
-            speechSynthesis.cancel();
-            fcReadingActive = false;
-            const btn = $("#fcReadAloud");
-            if (btn) btn.classList.remove("speaking");
-        }
-        fcIndex = (fcIndex + dir + fcFiltered.length) % fcFiltered.length;
-        renderFlashcard();
-    }
-
-    function shuffleCards() {
-        for (let i = fcFiltered.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [fcFiltered[i], fcFiltered[j]] = [fcFiltered[j], fcFiltered[i]];
-        }
-        fcIndex = 0;
-        renderFlashcard();
-    }
-
-    function fcAssess(correct) {
-        if (!fcFiltered.length) return;
-        const q = fcFiltered[fcIndex];
-
-        if (correct) {
-            fcCorrectCount++;
-            playCorrectSound();
-        } else {
-            fcWrongCount++;
-            playWrongSound();
-        }
-
-        recordFcPerf(q.id, correct);
-        updateFcScore();
-
-        // Auto-advance
-        setTimeout(() => {
-            if (fcIndex < fcFiltered.length - 1) {
-                fcIndex++;
-            } else {
-                fcIndex = 0; // wrap around
-            }
-            renderFlashcard();
-        }, 200);
-    }
-
-    function initFlashcardEvents() {
-        $("#flashcardWrapper").addEventListener("click", flipCard);
-        $("#flashcardWrapper").addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                flipCard();
-            }
-        });
-        $("#fcPrev").addEventListener("click", () => fcNavigate(-1));
-        $("#fcNext").addEventListener("click", () => fcNavigate(1));
-        $("#fcShuffle").addEventListener("click", shuffleCards);
-        $("#fcCategoryFilter").addEventListener("change", () => {
-            fcWeakFilterActive = false;
-            $("#fcWeakFilter").classList.remove("active");
-            initFlashcards();
-        });
-
-        // Weak filter
-        $("#fcWeakFilter").addEventListener("click", () => {
-            fcWeakFilterActive = !fcWeakFilterActive;
-            $("#fcWeakFilter").classList.toggle("active", fcWeakFilterActive);
-            initFlashcards();
-        });
-
-        // Assessment buttons
-        $("#fcGotRight").addEventListener("click", () => fcAssess(true));
-        $("#fcGotWrong").addEventListener("click", () => fcAssess(false));
-
-        // Keyboard navigation
-        document.addEventListener("keydown", (e) => {
-            if (currentMode !== "flashcards") return;
-            if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
-            // Check for open modals
-            if ($("#settingsModal").style.display !== "none" || $("#shortcutsModal").style.display !== "none") return;
-
-            if (e.key === "ArrowLeft") fcNavigate(-1);
-            else if (e.key === "ArrowRight") fcNavigate(1);
-            else if (e.key === " ") { e.preventDefault(); flipCard(); }
-            else if (e.key === "r" || e.key === "R") readAloud();
-            else if (e.key === "s" || e.key === "S") shuffleCards();
-            else if (e.key === "1" && fcFlipped) fcAssess(true);
-            else if (e.key === "2" && fcFlipped) fcAssess(false);
-        });
-
-        // Global shortcuts
-        document.addEventListener("keydown", (e) => {
-            if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
-            if (e.key === "d" || e.key === "D") {
-                const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-                applyDarkMode(!isDark);
-                localStorage.setItem(globalKey("dark_mode"), (!isDark).toString());
-            }
-        });
-
-        // Swipe support
-        let touchStartX = 0;
-        let touchStartY = 0;
-        const wrapper = $("#flashcardWrapper");
-        wrapper.addEventListener("touchstart", (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-        wrapper.addEventListener("touchend", (e) => {
-            const dx = e.changedTouches[0].screenX - touchStartX;
-            const dy = e.changedTouches[0].screenY - touchStartY;
-            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-                if (dx > 0) fcNavigate(-1);
-                else fcNavigate(1);
-            }
-        }, { passive: true });
-
-        // Read aloud
-        $("#fcReadAloud").addEventListener("click", readAloud);
-    }
-
-    // ---- TTS Helper ----
-    function createUtterance(text) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = 0.9;
-        if (selectedVoice) utter.voice = selectedVoice;
-        return utter;
-    }
-
-    // ---- Read Aloud (context-aware, toggleable) ----
-    let fcReadingActive = false;
-
-    function readAloud() {
-        if (!("speechSynthesis" in window)) {
-            alert("Your browser does not support text-to-speech.");
-            return;
-        }
-        if (!fcFiltered.length) return;
-
-        const btn = $("#fcReadAloud");
-
-        // If already reading, stop it
-        if (fcReadingActive) {
-            speechSynthesis.cancel();
-            fcReadingActive = false;
-            btn.classList.remove("speaking");
-            return;
-        }
-
+    // ---- TTS ----
+    function speak(text, rate, onEnd) {
         speechSynthesis.cancel();
-        fcReadingActive = true;
-
-        const q = fcFiltered[fcIndex];
-
-        if (fcFlipped) {
-            // Card is showing answer side: read the answer
-            const text = q.answers.join(", or, ");
-            const utter = createUtterance(text);
-            utter.onstart = () => btn.classList.add("speaking");
-            utter.onend = () => { btn.classList.remove("speaking"); fcReadingActive = false; };
-            utter.onerror = () => { btn.classList.remove("speaking"); fcReadingActive = false; };
-            speechSynthesis.speak(utter);
-        } else {
-            // Card is showing question side: read question, then flip, then read answer
-            const qText = q.question;
-            const utterQ = createUtterance(qText);
-            utterQ.onstart = () => btn.classList.add("speaking");
-
-            utterQ.onend = () => {
-                if (!fcReadingActive) return;
-                // Flip card after question is read
-                if (!fcFlipped) flipCard();
-
-                // Pause, then read answer
-                setTimeout(() => {
-                    if (!fcReadingActive) return;
-                    const aText = q.answers.join(", or, ");
-                    const utterA = createUtterance(aText);
-                    utterA.onend = () => { btn.classList.remove("speaking"); fcReadingActive = false; };
-                    utterA.onerror = () => { btn.classList.remove("speaking"); fcReadingActive = false; };
-                    speechSynthesis.speak(utterA);
-                }, 600);
-            };
-
-            utterQ.onerror = () => { btn.classList.remove("speaking"); fcReadingActive = false; };
-            speechSynthesis.speak(utterQ);
-        }
-    }
-
-    // ---- Listen Mode ----
-    function initListen() {
-        listenFiltered = filterByCategory($("#listenCategoryFilter").value);
-        listenIndex = 0;
-        listenPlaying = false;
-        updateListenUI();
-        updatePlayPauseBtn();
-    }
-
-    function updateListenUI() {
-        if (!listenFiltered.length) return;
-        const q = listenFiltered[listenIndex];
-        $("#listenProgress").textContent = (listenIndex + 1) + " / " + listenFiltered.length;
-        $("#listenCategory").textContent = q.subcategory || q.category;
-        $("#listenQuestion").textContent = q.id + ". " + q.question;
-        $("#listenAnswer").textContent = q.answers.join("  |  ");
-        $("#listenAnswer").classList.remove("highlight");
-    }
-
-    function updatePlayPauseBtn() {
-        const playIcon = $(".play-icon");
-        const pauseIcon = $(".pause-icon");
-        const btn = $("#listenPlayPause");
-
-        if (listenPlaying) {
-            playIcon.style.display = "none";
-            pauseIcon.style.display = "";
-            btn.classList.add("playing");
-            btn.setAttribute("aria-label", "Pause");
-        } else {
-            playIcon.style.display = "";
-            pauseIcon.style.display = "none";
-            btn.classList.remove("playing");
-            btn.setAttribute("aria-label", "Play");
-        }
-    }
-
-    function stopListening() {
-        listenPlaying = false;
-        if ("speechSynthesis" in window) speechSynthesis.cancel();
-        listenUtterance = null;
-        updatePlayPauseBtn();
-    }
-
-    function speakCurrent() {
-        if (!("speechSynthesis" in window) || !listenFiltered.length) return;
-        speechSynthesis.cancel();
-
-        const q = listenFiltered[listenIndex];
-        const content = $("#listenContent").value;
-        const speed = parseFloat($("#listenSpeed").value);
-
-        let text = "";
-        if (content === "questions" || content === "both") {
-            text += q.question;
-        }
-        if (content === "both") text += " ... ";
-        if (content === "answers" || content === "both") {
-            text += q.answers.join(", or, ");
-        }
-
-        if (content === "both" || content === "answers") {
-            $("#listenAnswer").classList.add("highlight");
-        }
-
-        const utter = createUtterance(text);
-        utter.rate = speed;
-        listenUtterance = utter;
-
-        utter.onend = () => {
-            if (!listenPlaying) return;
-            if (listenIndex < listenFiltered.length - 1) {
-                listenIndex++;
-                updateListenUI();
-                setTimeout(() => {
-                    if (listenPlaying) speakCurrent();
-                }, 600);
-            } else {
-                listenPlaying = false;
-                updatePlayPauseBtn();
-            }
-        };
-
-        utter.onerror = () => {
-            listenPlaying = false;
-            updatePlayPauseBtn();
-        };
-
-        speechSynthesis.speak(utter);
-    }
-
-    function toggleListenPlayPause() {
-        if (listenPlaying) {
-            stopListening();
-        } else {
-            listenPlaying = true;
-            updatePlayPauseBtn();
-            speakCurrent();
-        }
-    }
-
-    function listenNavigate(dir) {
-        const wasPlaying = listenPlaying;
-        stopListening();
-        listenIndex = Math.max(0, Math.min(listenFiltered.length - 1, listenIndex + dir));
-        updateListenUI();
-        if (wasPlaying) {
-            listenPlaying = true;
-            updatePlayPauseBtn();
-            speakCurrent();
-        }
-    }
-
-    function initListenEvents() {
-        $("#listenPlayPause").addEventListener("click", toggleListenPlayPause);
-        $("#listenPrev").addEventListener("click", () => listenNavigate(-1));
-        $("#listenNext").addEventListener("click", () => listenNavigate(1));
-        $("#listenCategoryFilter").addEventListener("change", () => {
-            stopListening();
-            initListen();
-        });
-        $("#listenContent").addEventListener("change", () => {
-            if (listenPlaying) {
-                stopListening();
-                listenPlaying = true;
-                updatePlayPauseBtn();
-                speakCurrent();
-            }
-        });
-    }
-
-    // ---- Practice Test ----
-    function initPractice() {
-        $("#practiceStart").style.display = "";
-        $("#practiceQuestion").style.display = "none";
-        $("#practiceResults").style.display = "none";
-        updatePassInfo();
-    }
-
-    function updatePassInfo() {
-        const count = parseInt($("#practiceQuestionCount").value, 10) || 10;
-        const needed = Math.ceil(count * 0.6);
-        $("#practicePassInfo").textContent = "Need " + needed + " correct to pass (60%)";
-    }
-
-    function beginPractice() {
-        practiceQuestionCount = Math.max(1, Math.min(100, parseInt($("#practiceQuestionCount").value, 10) || 10));
-        practiceStreakMode = $("#practiceStreakMode").checked;
-        practiceTimerEnabled = $("#practiceTimer").checked;
-
-        // Select random questions
-        const shuffled = [...questions].sort(() => Math.random() - 0.5);
-
-        if (practiceStreakMode) {
-            // In streak mode, we need a pool of questions — take all shuffled
-            practiceQuestions = shuffled;
-            practiceQuestionCount = shuffled.length; // use entire pool
-        } else {
-            practiceQuestions = shuffled.slice(0, practiceQuestionCount);
-        }
-
-        practiceIndex = 0;
-        practiceScore = 0;
-        practiceAnswers = [];
-        practiceSelectedChoice = null;
-        practiceStreak = 0;
-        practiceTotalAsked = 0;
-
-        $("#practiceStart").style.display = "none";
-        $("#practiceQuestion").style.display = "";
-        $("#practiceResults").style.display = "none";
-
-        // Show/hide streak counter
-        $("#streakCounter").style.display = practiceStreakMode ? "" : "none";
-        updateStreakDisplay();
-
-        showPracticeQuestion();
-    }
-
-    function updateStreakDisplay() {
-        if (!practiceStreakMode) return;
-        const num = $("#streakNumber");
-        const flames = $("#streakFlames");
-        num.textContent = practiceStreak;
-
-        // Show fire emojis based on streak
-        let fireStr = "";
-        for (let i = 0; i < Math.min(practiceStreak, 6); i++) fireStr += "\uD83D\uDD25";
-        if (practiceStreak === 0) fireStr = "\u2014";
-        flames.textContent = fireStr;
-
-        // Pulse animation
-        const counter = $("#streakCounter");
-        counter.style.animation = "none";
-        // Force reflow
-        void counter.offsetWidth;
-        counter.style.animation = "streakPulse 0.3s ease";
-    }
-
-    function showPracticeQuestion() {
-        if (practiceStreakMode) {
-            // Wrap around the question pool
-            const poolIndex = practiceTotalAsked % practiceQuestions.length;
-            const q = practiceQuestions[poolIndex];
-
-            $("#practiceQNum").textContent = "Question " + (practiceTotalAsked + 1);
-            updatePracticeRingStreak();
-            showQuestionContent(q, poolIndex);
-        } else {
-            const q = practiceQuestions[practiceIndex];
-            const total = practiceQuestions.length;
-
-            $("#practiceQNum").textContent = "Question " + (practiceIndex + 1) + " of " + total;
-            updatePracticeRing();
-            showQuestionContent(q, practiceIndex);
-        }
-    }
-
-    function showQuestionContent(q, idx) {
-        $("#practiceScoreLive").textContent = practiceScore + " correct";
-        $("#practiceQuestionText").textContent = q.question;
-        $("#practiceSubmitAnswer").disabled = true;
-        practiceSelectedChoice = null;
-
-        const choices = generateChoices(q);
-        const container = $("#practiceChoices");
-        container.innerHTML = "";
-
-        choices.forEach((choice, i) => {
-            const btn = document.createElement("button");
-            btn.className = "practice-choice";
-            btn.textContent = choice;
-            btn.setAttribute("role", "radio");
-            btn.setAttribute("aria-checked", "false");
-            btn.dataset.index = i;
-            btn.addEventListener("click", () => selectChoice(btn, i));
-            container.appendChild(btn);
-        });
-
-        if (practiceTimerEnabled) {
-            practiceTimeLeft = 30;
-            $("#practiceTimerDisplay").style.display = "";
-            updateTimerDisplay();
-            startPracticeTimer();
-        } else {
-            $("#practiceTimerDisplay").style.display = "none";
-        }
-    }
-
-    function updatePracticeRing() {
-        const total = practiceQuestions.length;
-        const circumference = 2 * Math.PI * 52;
-        const progress = practiceIndex / total;
-        const offset = circumference * (1 - progress);
-        $("#progressRingFill").style.strokeDashoffset = offset;
-
-        const passed = practiceScore >= Math.ceil(total * 0.6);
-        if (practiceIndex > 0 && passed) {
-            $("#progressRingFill").style.stroke = "var(--success)";
-        } else {
-            $("#progressRingFill").style.stroke = "var(--primary)";
-        }
-
-        $("#progressRingText").textContent = practiceScore + "/" + total;
-    }
-
-    function updatePracticeRingStreak() {
-        const circumference = 2 * Math.PI * 52;
-        const progress = practiceStreak / 6;
-        const offset = circumference * (1 - Math.min(progress, 1));
-        $("#progressRingFill").style.strokeDashoffset = offset;
-
-        if (practiceStreak >= 4) {
-            $("#progressRingFill").style.stroke = "var(--success)";
-        } else if (practiceStreak >= 2) {
-            $("#progressRingFill").style.stroke = "var(--accent-warm)";
-        } else {
-            $("#progressRingFill").style.stroke = "var(--primary)";
-        }
-
-        $("#progressRingText").textContent = practiceStreak + "/6";
-    }
-
-    function generateChoices(question) {
-        const correctAnswer = question.answers[Math.floor(Math.random() * question.answers.length)];
-
-        const allOtherAnswers = [];
-        questions.forEach((q) => {
-            if (q.id !== question.id) {
-                q.answers.forEach((a) => {
-                    if (!question.answers.includes(a) && !allOtherAnswers.includes(a)) {
-                        allOtherAnswers.push(a);
-                    }
-                });
-            }
-        });
-
-        const shuffled = allOtherAnswers.sort(() => Math.random() - 0.5);
-        const distractors = shuffled.slice(0, 3);
-        const choices = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
-
-        question._correctAnswer = correctAnswer;
-        question._choices = choices;
-
-        return choices;
-    }
-
-    function selectChoice(btn, idx) {
-        $$(".practice-choice").forEach((b) => {
-            b.classList.remove("selected");
-            b.setAttribute("aria-checked", "false");
-        });
-        btn.classList.add("selected");
-        btn.setAttribute("aria-checked", "true");
-        practiceSelectedChoice = idx;
-        $("#practiceSubmitAnswer").disabled = false;
-    }
-
-    function submitAnswer() {
-        if (practiceSelectedChoice === null) return;
-        stopPracticeTimer();
-
-        const poolIndex = practiceStreakMode
-            ? (practiceTotalAsked % practiceQuestions.length)
-            : practiceIndex;
-        const q = practiceQuestions[poolIndex];
-        const chosenText = q._choices[practiceSelectedChoice];
-        const isCorrect = q.answers.includes(chosenText);
-
-        if (isCorrect) {
-            practiceScore++;
-            playCorrectSound();
-            if (practiceStreakMode) practiceStreak++;
-        } else {
-            playWrongSound();
-            if (practiceStreakMode) practiceStreak = 0;
-        }
-
-        if (practiceStreakMode) {
-            updateStreakDisplay();
-        }
-
-        // Show correct/incorrect visually
-        $$(".practice-choice").forEach((btn) => {
-            btn.classList.add("disabled");
-            const btnText = btn.textContent;
-            if (q.answers.includes(btnText)) {
-                btn.classList.add("correct");
-            }
-            if (parseInt(btn.dataset.index, 10) === practiceSelectedChoice && !isCorrect) {
-                btn.classList.add("incorrect");
-            }
-        });
-
-        practiceAnswers.push({
-            question: q,
-            chosen: chosenText,
-            correct: isCorrect,
-        });
-
-        practiceTotalAsked++;
-
-        // Check completion
-        setTimeout(() => {
-            if (practiceStreakMode) {
-                if (practiceStreak >= 6) {
-                    showPracticeResults();
-                } else {
-                    // Continue asking
-                    showPracticeQuestion();
-                }
-            } else {
-                practiceIndex++;
-                if (practiceIndex < practiceQuestions.length) {
-                    showPracticeQuestion();
-                } else {
-                    showPracticeResults();
-                }
-            }
-        }, 1000);
-    }
-
-    function startPracticeTimer() {
-        stopPracticeTimer();
-        practiceTimerInterval = setInterval(() => {
-            practiceTimeLeft--;
-            updateTimerDisplay();
-            if (practiceTimeLeft <= 0) {
-                stopPracticeTimer();
-                if (practiceSelectedChoice !== null) {
-                    submitAnswer();
-                } else {
-                    const poolIndex = practiceStreakMode
-                        ? (practiceTotalAsked % practiceQuestions.length)
-                        : practiceIndex;
-                    const q = practiceQuestions[poolIndex];
-                    practiceAnswers.push({
-                        question: q,
-                        chosen: "(No answer - time ran out)",
-                        correct: false,
-                    });
-                    playWrongSound();
-
-                    if (practiceStreakMode) {
-                        practiceStreak = 0;
-                        updateStreakDisplay();
-                    }
-
-                    practiceTotalAsked++;
-                    practiceIndex++;
-
-                    if (practiceStreakMode) {
-                        showPracticeQuestion();
-                    } else if (practiceIndex < practiceQuestions.length) {
-                        showPracticeQuestion();
-                    } else {
-                        showPracticeResults();
-                    }
-                }
-            }
-        }, 1000);
-    }
-
-    function stopPracticeTimer() {
-        if (practiceTimerInterval) {
-            clearInterval(practiceTimerInterval);
-            practiceTimerInterval = null;
-        }
-    }
-
-    function updateTimerDisplay() {
-        const display = $("#practiceTimerDisplay");
-        const secs = practiceTimeLeft;
-        display.textContent = "0:" + (secs < 10 ? "0" : "") + secs;
-        display.classList.toggle("urgent", secs <= 10);
-    }
-
-    function showPracticeResults() {
-        stopPracticeTimer();
-        $("#practiceQuestion").style.display = "none";
-        $("#practiceResults").style.display = "";
-
-        const totalQ = practiceStreakMode ? practiceTotalAsked : practiceQuestions.length;
-        const passThreshold = practiceStreakMode ? 6 : Math.ceil(totalQ * 0.6);
-        const passed = practiceStreakMode ? (practiceStreak >= 6) : (practiceScore >= passThreshold);
-
-        // Animated checkmark
-        const checkmarkEl = $("#resultsCheckmark");
-        if (passed) {
-            checkmarkEl.innerHTML = '<svg viewBox="0 0 52 52"><circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="' + "var(--success)" + '" stroke-width="2"/><path class="checkmark-check" fill="none" stroke="' + "var(--success)" + '" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>';
-            showConfetti();
-        } else {
-            checkmarkEl.innerHTML = '<svg viewBox="0 0 52 52"><circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="' + "var(--error)" + '" stroke-width="2"/><path class="crossmark-x1" fill="none" stroke="' + "var(--error)" + '" stroke-width="3" d="M16 16l20 20"/><path class="crossmark-x2" fill="none" stroke="' + "var(--error)" + '" stroke-width="3" d="M36 16l-20 20"/></svg>';
-        }
-
-        const scoreEl = $("#resultsScore");
-        scoreEl.textContent = practiceScore + " / " + totalQ;
-        scoreEl.className = "results-score " + (passed ? "pass" : "fail");
-
-        const statusEl = $("#resultsStatus");
-        if (practiceStreakMode && passed) {
-            statusEl.textContent = "6 in a Row -- You Passed!";
-        } else if (passed) {
-            statusEl.textContent = "You Passed!";
-        } else {
-            statusEl.textContent = "Not Passing -- Keep Studying!";
-        }
-        statusEl.className = "results-status " + (passed ? "pass" : "fail");
-
-        // Stats
-        const statsEl = $("#resultsStats");
-        let statsHtml = '';
-        statsHtml += '<div class="results-stat-item"><div class="results-stat-value">' + practiceScore + '</div><div class="results-stat-label">Correct</div></div>';
-        statsHtml += '<div class="results-stat-item"><div class="results-stat-value">' + (totalQ - practiceScore) + '</div><div class="results-stat-label">Wrong</div></div>';
-        statsHtml += '<div class="results-stat-item"><div class="results-stat-value">' + Math.round((practiceScore / totalQ) * 100) + '%</div><div class="results-stat-label">Accuracy</div></div>';
-        if (practiceStreakMode) {
-            statsHtml += '<div class="results-stat-item"><div class="results-stat-value">' + practiceTotalAsked + '</div><div class="results-stat-label">Total Asked</div></div>';
-        }
-        statsEl.innerHTML = statsHtml;
-
-        // Build review
-        const reviewEl = $("#resultsReview");
-        reviewEl.innerHTML = "";
-
-        practiceAnswers.forEach((a) => {
-            const item = document.createElement("div");
-            item.className = "review-item";
-
-            const icon = a.correct
-                ? '<svg class="review-icon correct" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>'
-                : '<svg class="review-icon incorrect" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-
-            let html = '<div class="review-question">' + icon + escHtml(a.question.question) + '</div>';
-            html += '<div class="review-answer">Your answer: ' + escHtml(a.chosen) + '</div>';
-
-            if (!a.correct) {
-                html += '<div class="review-correct-answer">Correct: ' + escHtml(a.question.answers.join(" | ")) + '</div>';
-            }
-
-            item.innerHTML = html;
-            reviewEl.appendChild(item);
-        });
-
-        // Save to history
-        addHistoryEntry({
-            date: new Date().toISOString(),
-            version: testVersion,
-            score: practiceScore,
-            total: totalQ,
-            passed: passed,
-            mode: practiceStreakMode ? "streak" : "standard",
-            streakTotal: practiceStreakMode ? practiceTotalAsked : null
-        });
+        const u = new SpeechSynthesisUtterance(text);
+        if (selectedVoice) u.voice = selectedVoice;
+        u.rate = rate || 1;
+        if (onEnd) u.onend = onEnd;
+        speechSynthesis.speak(u);
+        return u;
     }
 
     // ---- Confetti ----
-    function showConfetti() {
+    function fireConfetti() {
         const overlay = $("#confettiOverlay");
         overlay.innerHTML = "";
-        overlay.classList.remove("active");
-        void overlay.offsetWidth;
-        overlay.classList.add("active");
-
-        const colors = ["#22c55e", "#4a7ddb", "#f59e0b", "#ef4444", "#7c3aed", "#ec4899", "#06b6d4"];
+        const colors = ["#2563eb", "#7c3aed", "#f59e0b", "#10b981", "#ef4444", "#ec4899", "#06b6d4"];
         for (let i = 0; i < 60; i++) {
             const piece = document.createElement("div");
             piece.className = "confetti-piece";
             piece.style.left = Math.random() * 100 + "%";
-            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            piece.style.animationDelay = (Math.random() * 0.8) + "s";
-            piece.style.animationDuration = (2 + Math.random() * 2) + "s";
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 0.8 + "s";
+            piece.style.animationDuration = (1.5 + Math.random()) + "s";
             piece.style.width = (6 + Math.random() * 8) + "px";
             piece.style.height = (6 + Math.random() * 8) + "px";
             piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
             overlay.appendChild(piece);
         }
+        overlay.classList.add("active");
+        setTimeout(() => { overlay.classList.remove("active"); overlay.innerHTML = ""; }, 3000);
+    }
 
+    // ================================================================
+    //  NAVIGATION
+    // ================================================================
+
+    function initNavigation() {
+        // Brand = home
+        $("#brandHome").addEventListener("click", goHome);
+        $("#brandHome").addEventListener("keydown", (e) => { if (e.key === "Enter") goHome(); });
+
+        // Back button
+        $("#backBtn").addEventListener("click", goBack);
+
+        // Home cards
+        $("#civicsCard").addEventListener("click", () => navigateTo("civicsSelection"));
+        $("#englishCard").addEventListener("click", () => navigateTo("englishSelection"));
+
+        // Civics test selection
+        $$(".test-card[data-test]").forEach(card => {
+            card.addEventListener("click", () => loadCivicsTest(card.dataset.test));
+        });
+
+        // English mode selection
+        $$(".english-mode-card[data-emode]").forEach(card => {
+            card.addEventListener("click", () => loadEnglishMode(card.dataset.emode));
+        });
+
+        // Civics tabs
+        $$(".mode-tab").forEach(tab => {
+            tab.addEventListener("click", () => switchCivicsMode(tab.dataset.mode));
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener("keydown", handleKeyboard);
+    }
+
+    function navigateTo(screen) {
+        navigationStack.push(currentScreen);
+        showScreen(screen);
+    }
+
+    function goBack() {
+        if (navigationStack.length) {
+            const prev = navigationStack.pop();
+            showScreen(prev);
+        } else {
+            showScreen("home");
+        }
+    }
+
+    function goHome() {
+        navigationStack = [];
+        showScreen("home");
+        renderHome();
+    }
+
+    function showScreen(screen) {
+        currentScreen = screen;
+        // Hide all screens
+        hide($("#homeScreen"));
+        hide($("#civicsSelection"));
+        hide($("#studyApp"));
+        hide($("#englishSelection"));
+        hide($("#englishPractice"));
+
+        // Show back button if not home
+        if (screen === "home") {
+            hide($("#backBtn"));
+        } else {
+            show($("#backBtn"));
+        }
+
+        // Stop any audio
+        speechSynthesis.cancel();
+        stopRecognition();
+        clearMockTimer();
+
+        switch (screen) {
+            case "home":
+                show($("#homeScreen"));
+                break;
+            case "civicsSelection":
+                show($("#civicsSelection"));
+                break;
+            case "studyApp":
+                show($("#studyApp"));
+                break;
+            case "englishSelection":
+                show($("#englishSelection"));
+                checkSpeechAPI();
+                break;
+            case "englishPractice":
+                show($("#englishPractice"));
+                break;
+        }
+    }
+
+    // ================================================================
+    //  HOME SCREEN
+    // ================================================================
+
+    function renderHome() {
+        // Quote
+        const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+        $("#heroQuote").textContent = q;
+
+        // Streak
+        const streak = LS.get("dailyStreak", 0);
+        $("#homeStreakCount").textContent = streak;
+        $("#streakFlame").style.opacity = streak > 0 ? "1" : "0.3";
+
+        // Achievements
+        renderAchievements();
+
+        // Progress rings
+        updateHomeProgress();
+
+        // Quick stats
+        renderQuickStats();
+    }
+
+    function renderAchievements() {
+        const container = $("#achievementsBadges");
+        const unlocked = LS.get("achievements", {});
+        container.innerHTML = "";
+        ACHIEVEMENTS.forEach(a => {
+            const badge = document.createElement("span");
+            badge.className = "achievement-badge" + (unlocked[a.id] ? " unlocked" : "");
+            badge.innerHTML = `<span class="achievement-badge-icon">${a.icon}</span> ${a.name}`;
+            badge.title = a.desc + (unlocked[a.id] ? " (Unlocked!)" : "");
+            container.appendChild(badge);
+        });
+    }
+
+    function updateHomeProgress() {
+        // Civics progress = % of known questions (from study mode)
+        const known2008 = LS.get("known_2008", []);
+        const known2024 = LS.get("known_2024", []);
+        const civicsTotal = 100 + 128;
+        const civicsKnown = known2008.length + known2024.length;
+        const civicsPct = civicsTotal > 0 ? Math.round((civicsKnown / civicsTotal) * 100) : 0;
+        setProgressRing("civicsRingFill", "civicsRingText", civicsPct, 34);
+
+        // English progress
+        const engTotal = 55 + 55 + 40;
+        const engDone = engReadingCompleted.size + engWritingCompleted.size + engSpeakingCompleted.size;
+        const engPct = engTotal > 0 ? Math.round((engDone / engTotal) * 100) : 0;
+        setProgressRing("englishRingFill", "englishRingText", engPct, 34);
+    }
+
+    function setProgressRing(fillId, textId, pct, radius) {
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (pct / 100) * circumference;
+        const fill = $(`#${fillId}`);
+        const text = $(`#${textId}`);
+        if (fill) fill.style.strokeDashoffset = offset;
+        if (text) text.textContent = pct + "%";
+    }
+
+    function renderQuickStats() {
+        const grid = $("#quickStatsGrid");
+        const history = LS.get("testHistory", []);
+        const totalTests = history.length;
+        const avgScore = totalTests ? Math.round(history.reduce((s, h) => s + (h.score / h.total * 100), 0) / totalTests) : 0;
+        const streak = LS.get("dailyStreak", 0);
+        const totalPracticed = engReadingCompleted.size + engWritingCompleted.size + engSpeakingCompleted.size;
+
+        grid.innerHTML = `
+            <div class="stat-card"><div class="stat-card-number">${totalTests}</div><div class="stat-card-label">Tests Taken</div></div>
+            <div class="stat-card"><div class="stat-card-number">${avgScore}%</div><div class="stat-card-label">Avg Score</div></div>
+            <div class="stat-card"><div class="stat-card-number">${streak}</div><div class="stat-card-label">Day Streak</div></div>
+            <div class="stat-card"><div class="stat-card-number">${totalPracticed}</div><div class="stat-card-label">English Done</div></div>
+        `;
+    }
+
+    // ---- Streak ----
+    function updateStreak() {
+        const today = new Date().toISOString().slice(0, 10);
+        const lastDate = LS.get("lastPracticeDate", "");
+        let streak = LS.get("dailyStreak", 0);
+
+        if (lastDate === today) return; // already logged today
+
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        if (lastDate === yesterday) {
+            // streak continues, but don't increment until they practice
+        } else if (lastDate && lastDate !== yesterday) {
+            // streak broken
+            streak = 0;
+            LS.set("dailyStreak", 0);
+        }
+    }
+
+    function recordPractice() {
+        const today = new Date().toISOString().slice(0, 10);
+        const lastDate = LS.get("lastPracticeDate", "");
+        let streak = LS.get("dailyStreak", 0);
+
+        if (lastDate === today) return; // already counted today
+
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        if (lastDate === yesterday || lastDate === today) {
+            streak++;
+        } else {
+            streak = 1;
+        }
+        LS.set("dailyStreak", streak);
+        LS.set("lastPracticeDate", today);
+
+        // Check achievements
+        checkAchievement("first_steps");
+        if (streak >= 5) checkAchievement("streak_5");
+    }
+
+    // ---- Achievements ----
+    function checkAchievement(id) {
+        const unlocked = LS.get("achievements", {});
+        if (unlocked[id]) return;
+        unlocked[id] = Date.now();
+        LS.set("achievements", unlocked);
+        const a = ACHIEVEMENTS.find(x => x.id === id);
+        if (a) showAchievementToast(a);
+        renderAchievements();
+    }
+
+    function showAchievementToast(achievement) {
+        const toast = $("#achievementToast");
+        $("#achievementToastIcon").textContent = achievement.icon;
+        $("#achievementToastTitle").textContent = achievement.name + " Unlocked!";
+        $("#achievementToastDesc").textContent = achievement.desc;
+        show(toast);
+        fireConfetti();
+        setTimeout(() => hide(toast), 4000);
+    }
+
+    // ================================================================
+    //  CIVICS TEST
+    // ================================================================
+
+    async function loadCivicsTest(version) {
+        testVersion = version;
+        const url = version === "2008" ? "civics_2008.json" : "civics_2024.json";
+        try {
+            const resp = await fetch(url);
+            questions = await resp.json();
+        } catch (e) {
+            questions = [];
+            console.error("Failed to load civics questions:", e);
+            return;
+        }
+
+        // Load known
+        const savedKnown = LS.get(`known_${version}`, []);
+        knownQuestions = new Set(savedKnown);
+
+        navigateTo("studyApp");
+        initCivicsPanels();
+        switchCivicsMode("flashcards");
+    }
+
+    function initCivicsPanels() {
+        populateCategoryFilters();
+        initFlashcards();
+        initListen();
+        initPractice();
+        initStudy();
+        renderHistory();
+    }
+
+    // ---- Category Filters ----
+    function populateCategoryFilters() {
+        const cats = [...new Set(questions.map(q => q.category))];
+        ["fcCategoryFilter", "listenCategoryFilter"].forEach(id => {
+            const sel = $(`#${id}`);
+            sel.innerHTML = '<option value="all">All Categories</option>';
+            cats.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c; opt.textContent = c;
+                sel.appendChild(opt);
+            });
+        });
+    }
+
+    // ---- Mode Switching ----
+    function switchCivicsMode(mode) {
+        currentMode = mode;
+        speechSynthesis.cancel();
+        $$(".mode-tab").forEach(t => {
+            const active = t.dataset.mode === mode;
+            t.classList.toggle("active", active);
+            t.setAttribute("aria-selected", active);
+        });
+        $$(".mode-panel").forEach(p => p.classList.remove("active"));
+        const panel = $(`#panel-${mode}`);
+        if (panel) panel.classList.add("active");
+
+        if (mode === "listen") renderListenCard();
+        if (mode === "study") renderStudy();
+        if (mode === "history") renderHistory();
+    }
+
+    // ================================================================
+    //  FLASHCARDS
+    // ================================================================
+
+    function initFlashcards() {
+        fcFiltered = [...questions];
+        fcIndex = 0; fcFlipped = false;
+        fcCorrectCount = 0; fcWrongCount = 0; fcWeakFilterActive = false;
+
+        renderFlashcard();
+
+        $("#flashcardWrapper").addEventListener("click", flipCard);
+        $("#fcPrev").addEventListener("click", () => fcNav(-1));
+        $("#fcNext").addEventListener("click", () => fcNav(1));
+        $("#fcShuffle").addEventListener("click", shuffleFlashcards);
+        $("#fcReadAloud").addEventListener("click", readFlashcardAloud);
+        $("#fcGotRight").addEventListener("click", () => assessCard(true));
+        $("#fcGotWrong").addEventListener("click", () => assessCard(false));
+        $("#fcWeakFilter").addEventListener("click", toggleWeakFilter);
+        $("#fcCategoryFilter").addEventListener("change", filterFlashcards);
+    }
+
+    function filterFlashcards() {
+        const cat = $("#fcCategoryFilter").value;
+        fcFiltered = cat === "all" ? [...questions] : questions.filter(q => q.category === cat);
+        if (fcWeakFilterActive) {
+            const weakIds = getWeakIds();
+            fcFiltered = fcFiltered.filter(q => weakIds.has(q.id));
+        }
+        fcIndex = 0; fcFlipped = false;
+        renderFlashcard();
+    }
+
+    function getWeakIds() {
+        const scores = LS.get(`fc_scores_${testVersion}`, {});
+        const weak = new Set();
+        Object.entries(scores).forEach(([id, s]) => {
+            if (s.wrong > 0 && s.wrong >= s.correct) weak.add(parseInt(id));
+        });
+        return weak;
+    }
+
+    function toggleWeakFilter() {
+        fcWeakFilterActive = !fcWeakFilterActive;
+        $("#fcWeakFilter").classList.toggle("active", fcWeakFilterActive);
+        filterFlashcards();
+    }
+
+    function shuffleFlashcards() {
+        for (let i = fcFiltered.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fcFiltered[i], fcFiltered[j]] = [fcFiltered[j], fcFiltered[i]];
+        }
+        fcIndex = 0; fcFlipped = false;
+        renderFlashcard();
+    }
+
+    function renderFlashcard() {
+        if (!fcFiltered.length) {
+            $("#fcQuestion").textContent = "No questions match your filters.";
+            $("#fcCategory").textContent = "";
+            return;
+        }
+        const q = fcFiltered[fcIndex];
+        $("#fcCategory").textContent = q.category + (q.subcategory ? " > " + q.subcategory : "");
+        $("#fcCategoryBack").textContent = q.category;
+        $("#fcQuestion").textContent = q.question;
+        const answersList = $("#fcAnswers");
+        answersList.innerHTML = "";
+        q.answers.forEach(a => {
+            const li = document.createElement("li");
+            li.textContent = a;
+            answersList.appendChild(li);
+        });
+        // Progress
+        $("#fcProgress").textContent = `${fcIndex + 1} / ${fcFiltered.length}`;
+        const pct = ((fcIndex + 1) / fcFiltered.length) * 100;
+        $("#fcProgressBar").style.width = pct + "%";
+
+        // Score display
+        if (fcCorrectCount || fcWrongCount) {
+            $("#fcScoreDisplay").textContent = `\u2705 ${fcCorrectCount} \u274C ${fcWrongCount}`;
+        } else {
+            $("#fcScoreDisplay").textContent = "";
+        }
+
+        // Reset flip
+        const card = $("#flashcard");
+        card.classList.remove("flipped");
+        fcFlipped = false;
+        hide($("#fcAssessment"));
+    }
+
+    function flipCard() {
+        const card = $("#flashcard");
+        fcFlipped = !fcFlipped;
+        card.classList.toggle("flipped", fcFlipped);
+        if (fcFlipped) show($("#fcAssessment"));
+        else hide($("#fcAssessment"));
+    }
+
+    function fcNav(dir) {
+        if (!fcFiltered.length) return;
+        fcIndex = (fcIndex + dir + fcFiltered.length) % fcFiltered.length;
+        fcFlipped = false;
+        renderFlashcard();
+    }
+
+    function assessCard(correct) {
+        const q = fcFiltered[fcIndex];
+        const scores = LS.get(`fc_scores_${testVersion}`, {});
+        if (!scores[q.id]) scores[q.id] = { correct: 0, wrong: 0 };
+        if (correct) { scores[q.id].correct++; fcCorrectCount++; playSound("correct"); }
+        else { scores[q.id].wrong++; fcWrongCount++; playSound("wrong"); }
+        LS.set(`fc_scores_${testVersion}`, scores);
+        recordPractice();
+        fcNav(1);
+    }
+
+    function readFlashcardAloud() {
+        if (!fcFiltered.length) return;
+        const q = fcFiltered[fcIndex];
+        const text = fcFlipped ? q.answers.join(". ") : q.question;
+        speak(text);
+    }
+
+    // ================================================================
+    //  LISTEN MODE
+    // ================================================================
+
+    function initListen() {
+        listenFiltered = [...questions];
+        listenIndex = 0;
+
+        $("#listenPlayPause").addEventListener("click", toggleListenPlay);
+        $("#listenPrev").addEventListener("click", () => listenNav(-1));
+        $("#listenNext").addEventListener("click", () => listenNav(1));
+        $("#listenCategoryFilter").addEventListener("change", filterListen);
+        renderListenCard();
+    }
+
+    function filterListen() {
+        const cat = $("#listenCategoryFilter").value;
+        listenFiltered = cat === "all" ? [...questions] : questions.filter(q => q.category === cat);
+        listenIndex = 0;
+        renderListenCard();
+    }
+
+    function renderListenCard() {
+        if (!listenFiltered.length) return;
+        const q = listenFiltered[listenIndex];
+        $("#listenProgress").textContent = `${listenIndex + 1} / ${listenFiltered.length}`;
+        $("#listenCategory").textContent = q.category;
+        $("#listenQuestion").textContent = q.question;
+        $("#listenAnswer").textContent = q.answers.join(" / ");
+    }
+
+    function toggleListenPlay() {
+        if (listenPlaying) {
+            speechSynthesis.cancel();
+            listenPlaying = false;
+            showListenPlayIcon(false);
+            return;
+        }
+        playListenCurrent();
+    }
+
+    function playListenCurrent() {
+        if (!listenFiltered.length) return;
+        const q = listenFiltered[listenIndex];
+        const content = $("#listenContent").value;
+        const speed = parseFloat($("#listenSpeed").value) || 1;
+        let text = "";
+        if (content === "questions" || content === "both") text += q.question + ". ";
+        if (content === "answers" || content === "both") text += q.answers[0];
+        listenPlaying = true;
+        showListenPlayIcon(true);
+        speak(text, speed, () => {
+            listenPlaying = false;
+            showListenPlayIcon(false);
+        });
+    }
+
+    function showListenPlayIcon(playing) {
+        const play = $(".play-icon");
+        const pause = $(".pause-icon");
+        if (playing) { hide(play); show(pause); }
+        else { show(play); hide(pause); }
+    }
+
+    function listenNav(dir) {
+        speechSynthesis.cancel();
+        listenPlaying = false;
+        showListenPlayIcon(false);
+        if (!listenFiltered.length) return;
+        listenIndex = (listenIndex + dir + listenFiltered.length) % listenFiltered.length;
+        renderListenCard();
+    }
+
+    // ================================================================
+    //  PRACTICE TEST
+    // ================================================================
+
+    function initPractice() {
+        const countInput = $("#practiceQuestionCount");
+        countInput.max = questions.length;
+        countInput.addEventListener("input", updatePassInfo);
+        updatePassInfo();
+
+        $("#practiceBegin").addEventListener("click", startPracticeTest);
+        $("#practiceSubmitAnswer").addEventListener("click", submitPracticeAnswer);
+        $("#practiceRetake").addEventListener("click", retakePractice);
+    }
+
+    function updatePassInfo() {
+        const count = parseInt($("#practiceQuestionCount").value) || 10;
+        const pass = Math.ceil(count * 0.6);
+        $("#practicePassInfo").textContent = `Need ${pass} correct to pass (60%)`;
+    }
+
+    function startPracticeTest() {
+        practiceQuestionCount = Math.min(parseInt($("#practiceQuestionCount").value) || 10, questions.length);
+        practiceTimerEnabled = $("#practiceTimer").checked;
+        practiceStreakMode = $("#practiceStreakMode").checked;
+
+        // Pick random questions
+        const shuffled = [...questions].sort(() => Math.random() - 0.5);
+        practiceQuestions = shuffled.slice(0, practiceQuestionCount);
+        practiceIndex = 0;
+        practiceScore = 0;
+        practiceAnswers = [];
+        practiceStreak = 0;
+        practiceTotalAsked = 0;
+        practiceSelectedChoice = null;
+
+        hide($("#practiceStart"));
+        show($("#practiceQuestion"));
+        hide($("#practiceResults"));
+
+        if (practiceStreakMode) show($("#streakCounter"));
+        else hide($("#streakCounter"));
+
+        renderPracticeQuestion();
+    }
+
+    function renderPracticeQuestion() {
+        if (practiceIndex >= practiceQuestions.length) {
+            finishPracticeTest();
+            return;
+        }
+        const q = practiceQuestions[practiceIndex];
+        practiceTotalAsked++;
+
+        if (practiceStreakMode) {
+            $("#practiceQNum").textContent = `Question ${practiceTotalAsked}`;
+            updateStreakDisplay();
+        } else {
+            $("#practiceQNum").textContent = `Question ${practiceIndex + 1} of ${practiceQuestionCount}`;
+        }
+
+        // Progress ring
+        const pct = practiceIndex / practiceQuestionCount;
+        const circ = 326.73;
+        $("#progressRingFill").style.strokeDashoffset = circ - pct * circ;
+        $("#progressRingText").textContent = `${practiceIndex}/${practiceQuestionCount}`;
+
+        // Score
+        $("#practiceScoreLive").textContent = `Score: ${practiceScore}`;
+        $("#practiceScoreLive").style.color = practiceScore > 0 ? "var(--success)" : "";
+
+        // Question
+        $("#practiceQuestionText").textContent = q.question;
+
+        // Build choices (correct + 3 wrong from other questions)
+        const correctAnswer = q.answers[0];
+        const wrongPool = questions.filter(x => x.id !== q.id).sort(() => Math.random() - 0.5);
+        const wrongs = wrongPool.slice(0, 3).map(x => x.answers[0]);
+        const choices = [correctAnswer, ...wrongs].sort(() => Math.random() - 0.5);
+
+        const choicesDiv = $("#practiceChoices");
+        choicesDiv.innerHTML = "";
+        practiceSelectedChoice = null;
+        $("#practiceSubmitAnswer").disabled = true;
+
+        choices.forEach(c => {
+            const btn = document.createElement("button");
+            btn.className = "practice-choice";
+            btn.textContent = c;
+            btn.addEventListener("click", () => selectChoice(btn, c));
+            choicesDiv.appendChild(btn);
+        });
+
+        // Timer
+        if (practiceTimerEnabled) {
+            practiceTimeLeft = 30;
+            show($("#practiceTimerDisplay"));
+            renderTimer();
+            clearInterval(practiceTimerInterval);
+            practiceTimerInterval = setInterval(() => {
+                practiceTimeLeft--;
+                renderTimer();
+                if (practiceTimeLeft <= 0) {
+                    clearInterval(practiceTimerInterval);
+                    autoSubmitTimeout();
+                }
+            }, 1000);
+        } else {
+            hide($("#practiceTimerDisplay"));
+        }
+    }
+
+    function renderTimer() {
+        const m = Math.floor(practiceTimeLeft / 60);
+        const s = practiceTimeLeft % 60;
+        $("#practiceTimerDisplay").textContent = `${m}:${s.toString().padStart(2, "0")}`;
+    }
+
+    function selectChoice(btn, value) {
+        $$(".practice-choice").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        practiceSelectedChoice = value;
+        $("#practiceSubmitAnswer").disabled = false;
+    }
+
+    function submitPracticeAnswer() {
+        clearInterval(practiceTimerInterval);
+        const q = practiceQuestions[practiceIndex];
+        const correct = q.answers.some(a =>
+            a.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim() ===
+            (practiceSelectedChoice || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").trim()
+        );
+
+        // Highlight
+        $$(".practice-choice").forEach(btn => {
+            btn.style.pointerEvents = "none";
+            const isCorrect = q.answers.some(a =>
+                a.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim() ===
+                btn.textContent.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim()
+            );
+            if (isCorrect) btn.classList.add("correct");
+            if (btn.classList.contains("selected") && !isCorrect) btn.classList.add("wrong");
+        });
+
+        if (correct) {
+            practiceScore++;
+            practiceStreak++;
+            playSound("correct");
+        } else {
+            playSound("wrong");
+            if (practiceStreakMode) practiceStreak = 0;
+        }
+
+        practiceAnswers.push({
+            question: q.question,
+            correctAnswer: q.answers[0],
+            userAnswer: practiceSelectedChoice,
+            correct
+        });
+
+        if (practiceStreakMode) updateStreakDisplay();
+
+        // Check streak win
+        if (practiceStreakMode && practiceStreak >= 6) {
+            setTimeout(() => finishPracticeTest(), 800);
+            return;
+        }
+
+        // Move to next after delay
         setTimeout(() => {
-            overlay.classList.remove("active");
-            overlay.innerHTML = "";
-        }, 4000);
+            practiceIndex++;
+            renderPracticeQuestion();
+        }, 1200);
     }
 
-    function initPracticeEvents() {
-        $("#practiceBegin").addEventListener("click", beginPractice);
-        $("#practiceSubmitAnswer").addEventListener("click", submitAnswer);
-        $("#practiceRetake").addEventListener("click", () => {
-            initPractice();
-        });
-        $("#practiceQuestionCount").addEventListener("input", updatePassInfo);
-
-        // Streak mode disables question count
-        $("#practiceStreakMode").addEventListener("change", () => {
-            const streakMode = $("#practiceStreakMode").checked;
-            $("#practiceQuestionCount").disabled = streakMode;
-            if (streakMode) {
-                $("#practicePassInfo").textContent = "Get 6 correct in a row to pass";
-            } else {
-                updatePassInfo();
-            }
-        });
+    function autoSubmitTimeout() {
+        practiceSelectedChoice = null;
+        submitPracticeAnswer();
     }
 
-    // ---- Study Mode ----
+    function updateStreakDisplay() {
+        const flames = $("#streakFlames");
+        flames.textContent = "";
+        for (let i = 0; i < Math.min(practiceStreak, 6); i++) flames.textContent += "\u{1F525}";
+        $("#streakNumber").textContent = practiceStreak;
+    }
+
+    function finishPracticeTest() {
+        clearInterval(practiceTimerInterval);
+        hide($("#practiceQuestion"));
+        show($("#practiceResults"));
+
+        const total = practiceAnswers.length;
+        const pct = total ? Math.round((practiceScore / total) * 100) : 0;
+        const pass = pct >= 60;
+
+        if (pass) fireConfetti();
+
+        // Checkmark
+        $("#resultsCheckmark").textContent = pass ? "\u{2705}" : "\u{274C}";
+        $("#resultsScore").textContent = `${practiceScore} / ${total} (${pct}%)`;
+        $("#resultsScore").style.color = pass ? "var(--success)" : "var(--error)";
+        $("#resultsStatus").textContent = pass ? "PASSED!" : "Keep Studying";
+        $("#resultsStatus").style.color = pass ? "var(--success)" : "var(--error)";
+
+        let statsHtml = "";
+        if (practiceStreakMode) {
+            statsHtml = `Streak mode \u2014 answered ${total} questions, best streak: ${Math.max(...practiceAnswers.reduce((acc, a, i) => {
+                if (a.correct) acc[acc.length - 1]++;
+                else acc.push(0);
+                return acc;
+            }, [0]))}`;
+        } else {
+            statsHtml = `${practiceScore} correct out of ${total} questions`;
+        }
+        $("#resultsStats").textContent = statsHtml;
+
+        // Review
+        const review = $("#resultsReview");
+        review.innerHTML = "";
+        practiceAnswers.forEach(a => {
+            const div = document.createElement("div");
+            div.className = "review-item";
+            div.innerHTML = `<div class="review-q">${a.correct ? "\u2705" : "\u274C"} ${a.question}</div>
+                <div class="review-a ${a.correct ? "review-correct" : "review-wrong"}">
+                    ${a.correct ? a.correctAnswer : `Your answer: ${a.userAnswer || "(none)"} | Correct: ${a.correctAnswer}`}
+                </div>`;
+            review.appendChild(div);
+        });
+
+        // Save history
+        const history = LS.get("testHistory", []);
+        history.unshift({
+            date: new Date().toISOString(),
+            version: testVersion,
+            score: practiceScore,
+            total: total,
+            streak: practiceStreakMode,
+            passed: pass,
+        });
+        if (history.length > 50) history.length = 50;
+        LS.set("testHistory", history);
+
+        recordPractice();
+        if (pct === 100) checkAchievement("civics_master");
+    }
+
+    function retakePractice() {
+        hide($("#practiceResults"));
+        show($("#practiceStart"));
+    }
+
+    // ================================================================
+    //  STUDY MODE
+    // ================================================================
+
     function initStudy() {
-        loadKnown();
-        renderStudy();
-        updateKnownCount();
+        $("#clearKnown").addEventListener("click", () => {
+            knownQuestions.clear();
+            LS.set(`known_${testVersion}`, []);
+            renderStudy();
+        });
     }
 
     function renderStudy() {
         const container = $("#studyCategories");
         container.innerHTML = "";
 
-        const cats = getCategories();
-
-        cats.forEach((subcats, category) => {
-            const group = document.createElement("div");
-            group.className = "study-category-group";
-
-            const catQuestions = questions.filter((q) => q.category === category);
-            const knownInCat = catQuestions.filter((q) => knownQuestions.has(q.id)).length;
-
-            const header = document.createElement("button");
-            header.className = "study-category-header";
-            header.innerHTML =
-                escHtml(category) +
-                '<span class="study-category-count">' + knownInCat + '/' + catQuestions.length + ' known</span>' +
-                '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg>';
-
-            const items = document.createElement("div");
-            items.className = "study-items-hidden";
-
-            header.addEventListener("click", () => {
-                header.classList.toggle("open");
-                items.classList.toggle("study-items-hidden");
-            });
-
-            subcats.forEach((sub) => {
-                const subHeader = document.createElement("div");
-                subHeader.className = "study-subcategory-header";
-                subHeader.textContent = sub;
-                items.appendChild(subHeader);
-
-                const subQuestions = questions.filter((q) => q.category === category && q.subcategory === sub);
-                subQuestions.forEach((q) => {
-                    const item = document.createElement("div");
-                    item.className = "study-question-item" + (knownQuestions.has(q.id) ? " known" : "");
-                    item.dataset.qid = q.id;
-
-                    const check = document.createElement("div");
-                    check.className = "study-known-check" + (knownQuestions.has(q.id) ? " checked" : "");
-                    check.setAttribute("role", "checkbox");
-                    check.setAttribute("aria-checked", knownQuestions.has(q.id));
-                    check.setAttribute("aria-label", "Mark question " + q.id + " as known");
-                    check.setAttribute("tabindex", "0");
-                    check.innerHTML = knownQuestions.has(q.id)
-                        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>'
-                        : "";
-
-                    check.addEventListener("click", () => toggleKnown(q.id, check, item));
-                    check.addEventListener("keydown", (e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            toggleKnown(q.id, check, item);
-                        }
-                    });
-
-                    const content = document.createElement("div");
-                    content.className = "study-question-content";
-                    content.innerHTML =
-                        '<div class="study-q-text"><span class="study-q-num">' + q.id + '.</span> ' + escHtml(q.question) + '</div>' +
-                        '<div class="study-a-text">' + escHtml(q.answers.join(" | ")) + '</div>';
-
-                    item.appendChild(check);
-                    item.appendChild(content);
-                    items.appendChild(item);
-                });
-            });
-
-            group.appendChild(header);
-            group.appendChild(items);
-            container.appendChild(group);
+        const catMap = {};
+        questions.forEach(q => {
+            const cat = q.category;
+            if (!catMap[cat]) catMap[cat] = [];
+            catMap[cat].push(q);
         });
-    }
 
-    function toggleKnown(qid, checkEl, itemEl) {
-        if (knownQuestions.has(qid)) {
-            knownQuestions.delete(qid);
-            checkEl.classList.remove("checked");
-            checkEl.innerHTML = "";
-            checkEl.setAttribute("aria-checked", "false");
-            itemEl.classList.remove("known");
-        } else {
-            knownQuestions.add(qid);
-            checkEl.classList.add("checked");
-            checkEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>';
-            checkEl.setAttribute("aria-checked", "true");
-            itemEl.classList.add("known");
-        }
-        saveKnown();
+        Object.entries(catMap).forEach(([cat, qs]) => {
+            const section = document.createElement("div");
+            section.className = "study-category";
+
+            const knownInCat = qs.filter(q => knownQuestions.has(q.id)).length;
+            section.innerHTML = `
+                <div class="study-category-header">
+                    <div class="study-category-title">${cat}</div>
+                    <div class="study-category-count">${knownInCat} / ${qs.length} known</div>
+                </div>
+                <div class="study-questions"></div>
+            `;
+            const qContainer = section.querySelector(".study-questions");
+            qs.forEach(q => {
+                const div = document.createElement("div");
+                div.className = "study-question" + (knownQuestions.has(q.id) ? " known" : "");
+                div.innerHTML = `<span class="sq-number">#${q.id}</span><span class="sq-text">${q.question}</span><div class="sq-answer">${q.answers.join(" / ")}</div>`;
+                div.addEventListener("click", () => {
+                    div.classList.toggle("expanded");
+                    if (div.classList.contains("expanded")) {
+                        if (!knownQuestions.has(q.id)) {
+                            knownQuestions.add(q.id);
+                            div.classList.add("known");
+                            LS.set(`known_${testVersion}`, [...knownQuestions]);
+                            updateKnownCount();
+                        }
+                    }
+                });
+                qContainer.appendChild(div);
+            });
+            container.appendChild(section);
+        });
         updateKnownCount();
-        updateStudyCategoryCounts();
     }
 
     function updateKnownCount() {
-        $("#knownCount").textContent = knownQuestions.size + " marked as known";
+        $("#knownCount").textContent = `${knownQuestions.size} marked as known`;
     }
 
-    function updateStudyCategoryCounts() {
-        $$(".study-category-group").forEach((group) => {
-            const items = group.querySelectorAll(".study-question-item");
-            const known = group.querySelectorAll(".study-question-item.known");
-            const countEl = group.querySelector(".study-category-count");
-            if (countEl) {
-                countEl.textContent = known.length + "/" + items.length + " known";
-            }
-        });
-    }
+    // ================================================================
+    //  HISTORY
+    // ================================================================
 
-    function initStudyEvents() {
-        $("#clearKnown").addEventListener("click", () => {
-            if (confirm("Reset all progress? This will unmark all questions as known.")) {
-                knownQuestions.clear();
-                saveKnown();
-                renderStudy();
-                updateKnownCount();
-            }
-        });
-    }
-
-    // ---- History ----
     function renderHistory() {
         const container = $("#historyContent");
-        const history = loadHistory();
+        const history = LS.get("testHistory", []);
 
         if (!history.length) {
-            container.innerHTML =
-                '<div class="history-empty">' +
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
-                    '<div class="history-empty-title">No tests taken yet</div>' +
-                    '<div class="history-empty-desc">Complete a practice test to see your scores and progress here.</div>' +
-                '</div>';
+            container.innerHTML = '<div class="history-empty">No test history yet. Take a practice test to see your results here.</div>';
+            return;
+        }
+        container.innerHTML = "";
+        history.forEach(h => {
+            const pct = Math.round((h.score / h.total) * 100);
+            const div = document.createElement("div");
+            div.className = "history-item";
+            const date = new Date(h.date);
+            const dateStr = date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+            div.innerHTML = `
+                <div class="history-item-header">
+                    <span class="history-item-date">${dateStr} \u2014 ${h.version} Test${h.streak ? " (Streak)" : ""}</span>
+                    <span class="history-item-score ${h.passed ? "history-pass" : "history-fail"}">${pct}%</span>
+                </div>
+                <div class="history-item-details">${h.score} / ${h.total} correct \u2014 ${h.passed ? "PASSED" : "FAILED"}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // ================================================================
+    //  ENGLISH TEST
+    // ================================================================
+
+    async function loadEnglishData() {
+        try {
+            const resp = await fetch("english_test.json");
+            englishData = await resp.json();
+        } catch (e) {
+            console.error("Failed to load English test data:", e);
+        }
+    }
+
+    function checkSpeechAPI() {
+        if (!SpeechRecognition) {
+            show($("#speechApiWarning"));
+        } else {
+            hide($("#speechApiWarning"));
+        }
+    }
+
+    function loadEnglishMode(mode) {
+        if (!englishData) { alert("English test data is still loading. Please try again."); return; }
+        engMode = mode;
+        navigateTo("englishPractice");
+
+        // Hide all sections
+        hide($("#engReading"));
+        hide($("#engWriting"));
+        hide($("#engSpeaking"));
+        hide($("#engMock"));
+
+        switch (mode) {
+            case "reading": initReading(); break;
+            case "writing": initWriting(); break;
+            case "speaking": initSpeaking(); break;
+            case "mock": initMock(); break;
+        }
+    }
+
+    // ---- Text Comparison ----
+    function normalizeText(text) {
+        return (text || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).filter(Boolean);
+    }
+
+    function compareTexts(target, spoken) {
+        const tWords = normalizeText(target);
+        const sWords = normalizeText(spoken);
+        const result = [];
+        let correct = 0;
+        let ti = 0, si = 0;
+
+        while (ti < tWords.length || si < sWords.length) {
+            if (ti < tWords.length && si < sWords.length && tWords[ti] === sWords[si]) {
+                result.push({ word: tWords[ti], status: "correct" });
+                correct++;
+                ti++; si++;
+            } else if (ti < tWords.length && si < sWords.length) {
+                // Check if target word appears later in spoken (skip extra)
+                const futureInSpoken = sWords.indexOf(tWords[ti], si);
+                const futureInTarget = tWords.indexOf(sWords[si], ti);
+
+                if (futureInSpoken >= 0 && (futureInTarget < 0 || futureInSpoken - si <= futureInTarget - ti)) {
+                    // Extra words in spoken before match
+                    while (si < futureInSpoken) {
+                        result.push({ word: sWords[si], status: "extra" });
+                        si++;
+                    }
+                } else if (futureInTarget >= 0) {
+                    // Missing words in spoken
+                    while (ti < futureInTarget) {
+                        result.push({ word: tWords[ti], status: "missing" });
+                        ti++;
+                    }
+                } else {
+                    result.push({ word: tWords[ti], status: "wrong", spoken: sWords[si] });
+                    ti++; si++;
+                }
+            } else if (ti < tWords.length) {
+                result.push({ word: tWords[ti], status: "missing" });
+                ti++;
+            } else {
+                result.push({ word: sWords[si], status: "extra" });
+                si++;
+            }
+        }
+
+        const total = tWords.length;
+        const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+        return { result, score, correct, total };
+    }
+
+    function renderComparison(result, containerId) {
+        const el = $(`#${containerId}`);
+        show(el);
+        el.innerHTML = result.map(r => {
+            switch (r.status) {
+                case "correct": return `<span class="word-correct">${r.word}</span>`;
+                case "wrong": return `<span class="word-wrong">${r.spoken || r.word}</span>`;
+                case "missing": return `<span class="word-missing">[${r.word}]</span>`;
+                case "extra": return `<span class="word-extra">${r.word}</span>`;
+                default: return r.word;
+            }
+        }).join(" ");
+    }
+
+    function renderScoreBar(score, containerId) {
+        const el = $(`#${containerId}`);
+        show(el);
+        const color = score >= 80 ? "var(--success)" : score >= 50 ? "var(--warning)" : "var(--error)";
+        el.innerHTML = `Score: <span class="score-value" style="color:${color}">${score}%</span>`;
+    }
+
+    // ---- Speech Recognition ----
+    function startRecognition(onResult) {
+        if (!SpeechRecognition) {
+            alert("Speech recognition is not supported in your browser. Please use Chrome or Edge.");
+            return;
+        }
+        stopRecognition();
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = false;
+        isRecording = true;
+
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            isRecording = false;
+            onResult(transcript);
+        };
+        recognition.onerror = (e) => {
+            isRecording = false;
+            if (e.error !== "no-speech" && e.error !== "aborted") {
+                console.warn("Speech recognition error:", e.error);
+            }
+            onResult("");
+        };
+        recognition.onend = () => {
+            isRecording = false;
+        };
+        recognition.start();
+    }
+
+    function stopRecognition() {
+        if (recognition) {
+            try { recognition.abort(); } catch {}
+            recognition = null;
+        }
+        isRecording = false;
+    }
+
+    // ================================================================
+    //  READING PRACTICE
+    // ================================================================
+
+    function initReading() {
+        show($("#engReading"));
+        engReadingItems = [...englishData.reading];
+        engReadingIndex = 0;
+        renderReadingSentence();
+
+        // Remove old listeners by cloning
+        replaceClickHandler("readingListenFirst", () => {
+            const s = engReadingItems[engReadingIndex];
+            speak(s.sentence, 0.85);
+        });
+        replaceClickHandler("readingMic", startReadingRecognition);
+        replaceClickHandler("readingPrev", () => { engReadingIndex = Math.max(0, engReadingIndex - 1); renderReadingSentence(); });
+        replaceClickHandler("readingNext", () => { engReadingIndex = Math.min(engReadingItems.length - 1, engReadingIndex + 1); renderReadingSentence(); });
+        replaceClickHandler("readingShuffle", () => {
+            shuffleArray(engReadingItems);
+            engReadingIndex = 0;
+            renderReadingSentence();
+        });
+    }
+
+    function renderReadingSentence() {
+        const s = engReadingItems[engReadingIndex];
+        $("#readingSentence").textContent = s.sentence;
+        $("#readingProgress").textContent = `${engReadingIndex + 1} / ${engReadingItems.length}`;
+        hide($("#readingResult"));
+        hide($("#readingScoreBar"));
+        hide($("#readingMicStatus"));
+        const mic = $("#readingMic");
+        mic.classList.remove("recording");
+    }
+
+    function startReadingRecognition() {
+        const mic = $("#readingMic");
+        if (isRecording) {
+            stopRecognition();
+            mic.classList.remove("recording");
+            hide($("#readingMicStatus"));
             return;
         }
 
-        // Calculate stats
-        const scores = history.map(h => h.score / h.total);
-        const bestScore = Math.max(...scores);
-        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-        const passCount = history.filter(h => h.passed).length;
+        mic.classList.add("recording");
+        show($("#readingMicStatus"));
 
-        let html = '';
+        startRecognition((transcript) => {
+            mic.classList.remove("recording");
+            hide($("#readingMicStatus"));
 
-        // Summary cards
-        html += '<div class="history-summary">';
-        html += '<div class="history-stat-card"><div class="history-stat-value">' + Math.round(bestScore * 100) + '%</div><div class="history-stat-label">Best Score</div></div>';
-        html += '<div class="history-stat-card"><div class="history-stat-value">' + Math.round(avgScore * 100) + '%</div><div class="history-stat-label">Average</div></div>';
-        html += '<div class="history-stat-card"><div class="history-stat-value pass-color">' + passCount + '<span style="font-size:0.6em;color:var(--text-muted)">/' + history.length + '</span></div><div class="history-stat-label">Tests Passed</div></div>';
-        html += '</div>';
+            if (!transcript) {
+                show($("#readingResult"));
+                $("#readingResult").innerHTML = '<span class="word-wrong">No speech detected. Try again.</span>';
+                return;
+            }
 
-        // Mini bar chart (last 10)
-        const recent = history.slice(-10);
-        html += '<div class="history-chart">';
-        html += '<div class="history-chart-title">Recent Scores</div>';
-        html += '<div class="history-bars">';
-        recent.forEach((h) => {
-            const pct = Math.round((h.score / h.total) * 100);
-            const barClass = h.passed ? "pass-bar" : "fail-bar";
-            html += '<div class="history-bar ' + barClass + '" style="height:' + Math.max(pct, 4) + '%">';
-            html += '<div class="history-bar-tooltip">' + pct + '% (' + h.score + '/' + h.total + ')</div>';
-            html += '</div>';
+            const target = engReadingItems[engReadingIndex].sentence;
+            const { result, score } = compareTexts(target, transcript);
+            renderComparison(result, "readingResult");
+            renderScoreBar(score, "readingScoreBar");
+
+            // Track progress
+            engReadingCompleted.add(engReadingItems[engReadingIndex].id);
+            LS.set("eng_reading_done", [...engReadingCompleted]);
+            recordPractice();
+
+            if (score === 100) {
+                engReadingPerfect++;
+                LS.set("eng_reading_perfect", engReadingPerfect);
+                if (engReadingPerfect >= 10) checkAchievement("perfect_reader");
+                playSound("correct");
+            }
         });
-        html += '</div></div>';
+    }
 
-        // Recent entries list
-        html += '<div class="history-list-title">Test History</div>';
-        html += '<div class="history-list">';
-        [...history].reverse().forEach((h) => {
-            const date = new Date(h.date);
-            const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
-                " " + date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-            const passClass = h.passed ? "pass" : "fail";
-            const modeLabel = h.mode === "streak" ? "Streak" : "Standard";
+    // ================================================================
+    //  WRITING PRACTICE
+    // ================================================================
 
-            html += '<div class="history-entry">';
-            html += '<span class="history-entry-date">' + escHtml(dateStr) + '</span>';
-            html += '<span class="history-entry-score">' + h.score + '/' + h.total + '</span>';
-            html += '<span class="history-entry-mode">' + modeLabel + '</span>';
-            html += '<span class="history-badge ' + passClass + '">' + (h.passed ? "Pass" : "Fail") + '</span>';
-            html += '</div>';
+    function initWriting() {
+        show($("#engWriting"));
+        engWritingItems = [...englishData.writing];
+        engWritingIndex = 0;
+        renderWritingSentence();
+
+        replaceClickHandler("writingPlay", () => playWritingSentence());
+        replaceClickHandler("writingReplay", () => playWritingSentence());
+        replaceClickHandler("writingCheck", checkWriting);
+        replaceClickHandler("writingPrev", () => { engWritingIndex = Math.max(0, engWritingIndex - 1); renderWritingSentence(); });
+        replaceClickHandler("writingNext", () => { engWritingIndex = Math.min(engWritingItems.length - 1, engWritingIndex + 1); renderWritingSentence(); });
+        replaceClickHandler("writingShuffle", () => {
+            shuffleArray(engWritingItems);
+            engWritingIndex = 0;
+            renderWritingSentence();
         });
-        html += '</div>';
 
-        // Clear button
-        html += '<div style="text-align:center;margin-top:24px;">';
-        html += '<button class="history-clear-btn" id="historyClear">Clear History</button>';
-        html += '</div>';
+        // Enter key submits
+        $("#writingInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") checkWriting();
+        });
+    }
 
-        container.innerHTML = html;
+    function renderWritingSentence() {
+        $("#writingProgress").textContent = `${engWritingIndex + 1} / ${engWritingItems.length}`;
+        $("#writingInput").value = "";
+        hide($("#writingResult"));
+        hide($("#writingScoreBar"));
+        hide($("#writingReplay"));
+        $("#writingInput").focus();
+    }
 
-        // Clear history handler
-        const clearBtn = $("#historyClear");
-        if (clearBtn) {
-            clearBtn.addEventListener("click", () => {
-                if (confirm("Clear all test history? This cannot be undone.")) {
-                    saveHistory([]);
-                    renderHistory();
-                }
-            });
+    function playWritingSentence() {
+        const s = engWritingItems[engWritingIndex];
+        speak(s.sentence, 0.85);
+        show($("#writingReplay"));
+    }
+
+    function checkWriting() {
+        const userText = $("#writingInput").value.trim();
+        if (!userText) return;
+
+        const target = engWritingItems[engWritingIndex].sentence;
+        const { result, score } = compareTexts(target, userText);
+        renderComparison(result, "writingResult");
+        renderScoreBar(score, "writingScoreBar");
+
+        engWritingCompleted.add(engWritingItems[engWritingIndex].id);
+        LS.set("eng_writing_done", [...engWritingCompleted]);
+        recordPractice();
+
+        if (score === 100) {
+            engWritingPerfect++;
+            LS.set("eng_writing_perfect", engWritingPerfect);
+            if (engWritingPerfect >= 10) checkAchievement("dictation_pro");
+            playSound("correct");
         }
     }
 
-    // ---- Utility ----
-    function escHtml(str) {
-        const div = document.createElement("div");
-        div.textContent = str;
-        return div.innerHTML;
+    // ================================================================
+    //  SPEAKING PRACTICE
+    // ================================================================
+
+    function initSpeaking() {
+        show($("#engSpeaking"));
+        engSpeakingItems = [...englishData.speaking];
+        engSpeakingIndex = 0;
+        renderSpeakingPrompt();
+
+        replaceClickHandler("speakingMic", startSpeakingRecognition);
+        replaceClickHandler("speakingPrev", () => { engSpeakingIndex = Math.max(0, engSpeakingIndex - 1); renderSpeakingPrompt(); });
+        replaceClickHandler("speakingNext", () => { engSpeakingIndex = Math.min(engSpeakingItems.length - 1, engSpeakingIndex + 1); renderSpeakingPrompt(); });
+        replaceClickHandler("speakingShuffle", () => {
+            shuffleArray(engSpeakingItems);
+            engSpeakingIndex = 0;
+            renderSpeakingPrompt();
+        });
     }
 
-    // ---- Init ----
-    function init() {
-        initDarkMode();
-        initVoiceSelection();
-        initSoundEffects();
-        initModals();
-        initTestSelection();
-        initModeTabs();
-        initFlashcardEvents();
-        initListenEvents();
-        initPracticeEvents();
-        initStudyEvents();
+    function renderSpeakingPrompt() {
+        const p = engSpeakingItems[engSpeakingIndex];
+        $("#speakingPrompt").textContent = p.prompt;
+        $("#speakingProgress").textContent = `${engSpeakingIndex + 1} / ${engSpeakingItems.length}`;
+        hide($("#speakingSample"));
+        hide($("#speakingTranscript"));
+        hide($("#speakingFeedback"));
+        hide($("#speakingMicStatus"));
+        $("#speakingMic").classList.remove("recording");
     }
+
+    function startSpeakingRecognition() {
+        const mic = $("#speakingMic");
+        if (isRecording) {
+            stopRecognition();
+            mic.classList.remove("recording");
+            hide($("#speakingMicStatus"));
+            return;
+        }
+
+        mic.classList.add("recording");
+        show($("#speakingMicStatus"));
+
+        startRecognition((transcript) => {
+            mic.classList.remove("recording");
+            hide($("#speakingMicStatus"));
+
+            const p = engSpeakingItems[engSpeakingIndex];
+
+            // Show sample
+            show($("#speakingSample"));
+            $("#speakingSampleText").textContent = p.sampleAnswer;
+
+            if (!transcript) {
+                show($("#speakingFeedback"));
+                $("#speakingFeedback").textContent = "No speech detected. Try again.";
+                $("#speakingFeedback").style.color = "var(--error)";
+                $("#speakingFeedback").style.background = "var(--error-bg)";
+                return;
+            }
+
+            // Show transcript
+            show($("#speakingTranscript"));
+            $("#speakingTranscriptText").textContent = transcript;
+
+            // Simple scoring: check word count and if it contains relevant words
+            const words = normalizeText(transcript);
+            const wordCount = words.length;
+            let feedback = "";
+            let feedbackColor = "";
+            let feedbackBg = "";
+
+            if (wordCount >= 3) {
+                feedback = "Good response! You spoke a complete answer.";
+                feedbackColor = "var(--success)";
+                feedbackBg = "var(--success-bg)";
+                playSound("correct");
+            } else if (wordCount >= 1) {
+                feedback = "Try to answer in a full sentence for better practice.";
+                feedbackColor = "var(--warning)";
+                feedbackBg = "var(--warning-bg)";
+            } else {
+                feedback = "Try again with a more complete answer.";
+                feedbackColor = "var(--error)";
+                feedbackBg = "var(--error-bg)";
+            }
+
+            show($("#speakingFeedback"));
+            $("#speakingFeedback").textContent = feedback;
+            $("#speakingFeedback").style.color = feedbackColor;
+            $("#speakingFeedback").style.background = feedbackBg;
+
+            // Track
+            engSpeakingCompleted.add(p.id);
+            LS.set("eng_speaking_done", [...engSpeakingCompleted]);
+            recordPractice();
+        });
+    }
+
+    // ================================================================
+    //  MOCK TEST
+    // ================================================================
+
+    function initMock() {
+        show($("#engMock"));
+        mockPhase = null;
+        mockStep = 0;
+        mockScores = { reading: [], writing: [], speaking: 0 };
+
+        // Pick 3 random reading, 3 writing
+        const rShuffled = [...englishData.reading].sort(() => Math.random() - 0.5);
+        mockReadingSentences = rShuffled.slice(0, 3);
+        const wShuffled = [...englishData.writing].sort(() => Math.random() - 0.5);
+        mockWritingSentences = wShuffled.slice(0, 3);
+
+        hide($("#mockResults"));
+        renderMockStart();
+    }
+
+    function renderMockStart() {
+        const content = $("#mockContent");
+        content.innerHTML = `
+            <div style="text-align:center; padding:20px">
+                <div style="font-size:2rem; margin-bottom:16px">\u{1F3C6}</div>
+                <h3 style="margin-bottom:8px">Full English Mock Test</h3>
+                <p style="color:var(--text-secondary); margin-bottom:20px">This simulates the real USCIS English test:<br>3 Reading sentences + 3 Writing sentences + Speaking section</p>
+                <button class="primary-btn" id="mockStartBtn">Begin Mock Test</button>
+            </div>
+        `;
+        $("#mockProgress").textContent = "";
+        $("#mockTimer").textContent = "";
+        hide($("#mockActions").querySelector && $("#mockActions"));
+        $("#mockActions").innerHTML = "";
+
+        replaceClickHandler("mockStartBtn", () => {
+            mockPhase = "reading";
+            mockStep = 0;
+            renderMockReading();
+        });
+    }
+
+    function clearMockTimer() {
+        if (mockTimerInterval) { clearInterval(mockTimerInterval); mockTimerInterval = null; }
+    }
+
+    function startMockCountdown(seconds, onDone) {
+        clearMockTimer();
+        mockTimeLeft = seconds;
+        renderMockTimerDisplay();
+        mockTimerInterval = setInterval(() => {
+            mockTimeLeft--;
+            renderMockTimerDisplay();
+            if (mockTimeLeft <= 0) {
+                clearMockTimer();
+                if (onDone) onDone();
+            }
+        }, 1000);
+    }
+
+    function renderMockTimerDisplay() {
+        const m = Math.floor(mockTimeLeft / 60);
+        const s = mockTimeLeft % 60;
+        $("#mockTimer").textContent = `${m}:${s.toString().padStart(2, "0")}`;
+    }
+
+    // ---- Mock Reading ----
+    function renderMockReading() {
+        const sentence = mockReadingSentences[mockStep];
+        $("#mockProgress").textContent = `Reading ${mockStep + 1} / 3`;
+
+        const content = $("#mockContent");
+        content.innerHTML = `
+            <div class="mock-section-label">Reading Section</div>
+            <div class="mock-instruction">Read the following sentence aloud:</div>
+            <div class="eng-sentence" style="margin-bottom:0">${sentence.sentence}</div>
+            <div class="eng-result" id="mockReadingResult" style="display:none;margin-top:16px"></div>
+            <div class="eng-score-bar" id="mockReadingScore" style="display:none;margin-top:8px"></div>
+        `;
+
+        const actions = $("#mockActions");
+        actions.innerHTML = `
+            <button class="fab-btn" id="mockReadingMic" aria-label="Read aloud">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+        `;
+
+        startMockCountdown(30, () => advanceMockReading(0));
+
+        replaceClickHandler("mockReadingMic", () => {
+            const mic = $("#mockReadingMic");
+            if (isRecording) { stopRecognition(); mic.classList.remove("recording"); return; }
+            mic.classList.add("recording");
+
+            startRecognition((transcript) => {
+                mic.classList.remove("recording");
+                const { result, score } = compareTexts(sentence.sentence, transcript || "");
+                renderComparison(result, "mockReadingResult");
+                renderScoreBar(score, "mockReadingScore");
+                mockScores.reading.push(score);
+                clearMockTimer();
+                setTimeout(() => advanceMockReading(), 1500);
+            });
+        });
+    }
+
+    function advanceMockReading(score) {
+        if (score !== undefined) mockScores.reading.push(score);
+        mockStep++;
+        if (mockStep < 3) {
+            renderMockReading();
+        } else {
+            mockPhase = "writing";
+            mockStep = 0;
+            renderMockWriting();
+        }
+    }
+
+    // ---- Mock Writing ----
+    function renderMockWriting() {
+        const sentence = mockWritingSentences[mockStep];
+        $("#mockProgress").textContent = `Writing ${mockStep + 1} / 3`;
+
+        const content = $("#mockContent");
+        content.innerHTML = `
+            <div class="mock-section-label">Writing Section (Dictation)</div>
+            <div class="mock-instruction">Listen to the sentence, then type what you heard:</div>
+            <div class="eng-writing-prompt" style="margin-bottom:16px">
+                <button class="action-btn action-btn--secondary" id="mockWritingPlay">Play Sentence</button>
+            </div>
+            <div class="eng-writing-input-row">
+                <input type="text" class="eng-input" id="mockWritingInput" placeholder="Type what you hear..." autocomplete="off" spellcheck="false">
+                <button class="primary-btn" id="mockWritingCheck">Check</button>
+            </div>
+            <div class="eng-result" id="mockWritingResult" style="display:none"></div>
+            <div class="eng-score-bar" id="mockWritingScore" style="display:none"></div>
+        `;
+        $("#mockActions").innerHTML = "";
+
+        startMockCountdown(45, () => submitMockWriting());
+
+        replaceClickHandler("mockWritingPlay", () => speak(sentence.sentence, 0.85));
+        replaceClickHandler("mockWritingCheck", () => submitMockWriting());
+        const input = $("#mockWritingInput");
+        input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitMockWriting(); });
+
+        // Auto-play the sentence
+        setTimeout(() => speak(sentence.sentence, 0.85), 500);
+    }
+
+    function submitMockWriting() {
+        clearMockTimer();
+        const sentence = mockWritingSentences[mockStep];
+        const userText = ($("#mockWritingInput") ? $("#mockWritingInput").value : "").trim();
+        const { result, score } = compareTexts(sentence.sentence, userText);
+        renderComparison(result, "mockWritingResult");
+        renderScoreBar(score, "mockWritingScore");
+        mockScores.writing.push(score);
+
+        setTimeout(() => advanceMockWriting(), 1500);
+    }
+
+    function advanceMockWriting() {
+        mockStep++;
+        if (mockStep < 3) {
+            renderMockWriting();
+        } else {
+            mockPhase = "speaking";
+            mockStep = 0;
+            renderMockSpeaking();
+        }
+    }
+
+    // ---- Mock Speaking ----
+    function renderMockSpeaking() {
+        // Just one speaking prompt for the mock
+        const prompt = englishData.speaking[Math.floor(Math.random() * englishData.speaking.length)];
+        $("#mockProgress").textContent = "Speaking";
+
+        const content = $("#mockContent");
+        content.innerHTML = `
+            <div class="mock-section-label">Speaking Section</div>
+            <div class="mock-instruction">Answer the following question:</div>
+            <div class="eng-speaking-prompt">${prompt.prompt}</div>
+            <div id="mockSpeakingTranscript" style="display:none;text-align:center;padding:12px;background:var(--primary-lighter);border-radius:8px;margin-top:12px"></div>
+        `;
+
+        const actions = $("#mockActions");
+        actions.innerHTML = `
+            <button class="fab-btn" id="mockSpeakingMic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+        `;
+
+        startMockCountdown(30, () => finishMockSpeaking(0));
+
+        replaceClickHandler("mockSpeakingMic", () => {
+            const mic = $("#mockSpeakingMic");
+            if (isRecording) { stopRecognition(); mic.classList.remove("recording"); return; }
+            mic.classList.add("recording");
+
+            startRecognition((transcript) => {
+                mic.classList.remove("recording");
+                clearMockTimer();
+
+                if (transcript) {
+                    show($("#mockSpeakingTranscript"));
+                    $("#mockSpeakingTranscript").innerHTML = `<strong>You said:</strong> ${transcript}`;
+                    const words = normalizeText(transcript);
+                    const score = words.length >= 3 ? 100 : words.length >= 1 ? 50 : 0;
+                    finishMockSpeaking(score);
+                } else {
+                    finishMockSpeaking(0);
+                }
+            });
+        });
+    }
+
+    function finishMockSpeaking(score) {
+        clearMockTimer();
+        mockScores.speaking = score;
+        setTimeout(renderMockResults, 1500);
+    }
+
+    // ---- Mock Results ----
+    function renderMockResults() {
+        mockPhase = "results";
+        $("#mockProgress").textContent = "Results";
+        $("#mockTimer").textContent = "";
+        $("#mockActions").innerHTML = "";
+
+        const readingAvg = mockScores.reading.length
+            ? Math.round(mockScores.reading.reduce((a, b) => a + b, 0) / mockScores.reading.length)
+            : 0;
+        const writingAvg = mockScores.writing.length
+            ? Math.round(mockScores.writing.reduce((a, b) => a + b, 0) / mockScores.writing.length)
+            : 0;
+        const speakingScore = mockScores.speaking;
+        const overall = Math.round((readingAvg + writingAvg + speakingScore) / 3);
+        const passed = overall >= 60;
+
+        if (passed) fireConfetti();
+
+        const content = $("#mockContent");
+        content.innerHTML = `
+            <div class="mock-results-card">
+                <div style="font-size:3rem; margin-bottom:12px">${passed ? "\u{2705}" : "\u{274C}"}</div>
+                <div style="font-size:2.5rem; font-weight:800; color:${passed ? "var(--success)" : "var(--error)"}; margin-bottom:8px">${overall}%</div>
+                <div style="font-size:1.1rem; font-weight:700; color:${passed ? "var(--success)" : "var(--error)"}; margin-bottom:20px">${passed ? "PASSED!" : "Keep Practicing"}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:24px">
+                    <div class="stat-card"><div class="stat-card-number">${readingAvg}%</div><div class="stat-card-label">Reading</div></div>
+                    <div class="stat-card"><div class="stat-card-number">${writingAvg}%</div><div class="stat-card-label">Writing</div></div>
+                    <div class="stat-card"><div class="stat-card-number">${speakingScore}%</div><div class="stat-card-label">Speaking</div></div>
+                </div>
+                <button class="primary-btn" id="mockRetake">Take Another Mock Test</button>
+            </div>
+        `;
+
+        replaceClickHandler("mockRetake", initMock);
+        recordPractice();
+    }
+
+    // ================================================================
+    //  KEYBOARD SHORTCUTS
+    // ================================================================
+
+    function handleKeyboard(e) {
+        // Ignore if in input
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        // Ignore if modal open
+        if ($("#settingsModal").style.display !== "none" || $("#shortcutsModal").style.display !== "none") return;
+
+        if (currentScreen === "studyApp" && currentMode === "flashcards") {
+            switch (e.key) {
+                case " ":
+                    e.preventDefault();
+                    flipCard();
+                    break;
+                case "ArrowLeft":
+                    fcNav(-1);
+                    break;
+                case "ArrowRight":
+                    fcNav(1);
+                    break;
+                case "r": case "R":
+                    readFlashcardAloud();
+                    break;
+                case "s": case "S":
+                    shuffleFlashcards();
+                    break;
+                case "1":
+                    if (fcFlipped) assessCard(true);
+                    break;
+                case "2":
+                    if (fcFlipped) assessCard(false);
+                    break;
+            }
+        }
+
+        if (e.key === "d" || e.key === "D") {
+            $("#darkModeToggle").click();
+        }
+    }
+
+    // ================================================================
+    //  UTILITIES
+    // ================================================================
+
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
+
+    function replaceClickHandler(id, handler) {
+        const el = typeof id === "string" ? $(`#${id}`) : id;
+        if (!el) return;
+        const clone = el.cloneNode(true);
+        el.parentNode.replaceChild(clone, el);
+        clone.addEventListener("click", handler);
+    }
+
+    // ================================================================
+    //  BOOT
+    // ================================================================
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);
     } else {
         init();
     }
+
 })();

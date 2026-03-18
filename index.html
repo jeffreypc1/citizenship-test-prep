@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USCIS Civics Test Practice | O'Brien Immigration Law</title>
+    <title>USCIS Practice Test | O'Brien Immigration Law</title>
     <link rel="stylesheet" href="civics.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Confetti canvas (CSS-only confetti via pseudo-elements, triggered by class) -->
+    <!-- Confetti overlay -->
     <div id="confettiOverlay" class="confetti-overlay" aria-hidden="true"></div>
 
     <!-- Header -->
     <header class="header" role="banner">
         <div class="header-inner">
-            <div class="brand">
+            <div class="brand" id="brandHome" role="button" tabindex="0" aria-label="Go to home screen">
                 <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
                 <div>
                     <div class="brand-name">O'Brien Immigration Law</div>
-                    <div class="brand-subtitle">USCIS Civics Test Practice</div>
+                    <div class="brand-subtitle">USCIS Practice Tests</div>
                 </div>
             </div>
             <div class="header-actions">
@@ -30,15 +30,15 @@
                     <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
-                <button class="icon-btn" id="settingsToggle" aria-label="Voice & sound settings" title="Settings">
+                <button class="icon-btn" id="settingsToggle" aria-label="Settings" title="Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
                 <button class="icon-btn" id="shortcutsToggle" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </button>
-                <button class="back-to-select" id="backToSelect" aria-label="Back to test selection" style="display:none;">
+                <button class="back-btn" id="backBtn" aria-label="Go back" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span>Change Test</span>
+                    <span>Back</span>
                 </button>
             </div>
         </div>
@@ -56,10 +56,10 @@
             <div class="modal-body">
                 <div class="setting-group">
                     <label class="setting-label" for="voiceSelect">Voice</label>
-                    <select id="voiceSelect" class="setting-select" aria-label="Select voice for text-to-speech">
+                    <select id="voiceSelect" class="setting-select" aria-label="Select voice">
                         <option value="">Loading voices...</option>
                     </select>
-                    <p class="setting-help">Choose a voice for text-to-speech. Your selection is saved automatically.</p>
+                    <p class="setting-help">Choose a voice for text-to-speech.</p>
                 </div>
                 <div class="setting-group">
                     <label class="setting-label">Sound Effects</label>
@@ -98,66 +98,123 @@
         </div>
     </div>
 
-    <!-- Skeleton Loader -->
-    <div id="skeletonLoader" class="skeleton-loader" style="display:none;">
-        <div class="skeleton-card">
-            <div class="skeleton-line skeleton-line--title"></div>
-            <div class="skeleton-line skeleton-line--text"></div>
-            <div class="skeleton-line skeleton-line--text skeleton-line--short"></div>
+    <!-- Achievement Toast -->
+    <div id="achievementToast" class="achievement-toast" style="display:none;" aria-live="polite">
+        <div class="achievement-toast-inner">
+            <span class="achievement-toast-icon" id="achievementToastIcon"></span>
+            <div>
+                <div class="achievement-toast-title" id="achievementToastTitle"></div>
+                <div class="achievement-toast-desc" id="achievementToastDesc"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Test Selection Screen -->
-    <main id="testSelection" class="test-selection" role="main">
-        <div class="selection-container">
-            <h1 class="selection-title">Practice for the<br><span class="title-accent">USCIS Civics Test</span></h1>
-            <p class="selection-desc">Choose a test version to begin studying. The civics test is an oral test where a USCIS officer asks you up to 10 questions. You must answer 6 correctly to pass.</p>
+    <!-- ========== HOME SCREEN ========== -->
+    <main id="homeScreen" class="home-screen" role="main">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-pattern"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">Prepare for Your<br><span class="gradient-text">Citizenship Test</span></h1>
+                <p class="hero-quote" id="heroQuote"></p>
+            </div>
+        </div>
 
+        <div class="home-container">
+            <!-- Streak + Achievements row -->
+            <div class="streak-achievements-row">
+                <div class="streak-card glass-card" id="streakCard">
+                    <div class="streak-flame" id="streakFlame">&#128293;</div>
+                    <div class="streak-info">
+                        <div class="streak-count" id="homeStreakCount">0</div>
+                        <div class="streak-label">Day Streak</div>
+                    </div>
+                </div>
+                <div class="achievements-card glass-card" id="achievementsCard">
+                    <div class="achievements-title">Achievements</div>
+                    <div class="achievements-badges" id="achievementsBadges"></div>
+                </div>
+            </div>
+
+            <!-- Main cards -->
+            <div class="home-cards">
+                <button class="home-card glass-card" id="civicsCard" aria-label="Practice Civics Test">
+                    <div class="home-card-icon">
+                        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48"><path d="M8 6h32v36H8z" rx="3"/><path d="M14 14h20M14 22h20M14 30h12"/><circle cx="36" cy="36" r="8" fill="var(--primary)" stroke="none" opacity="0.15"/><path d="M33 36l2 2 4-4" stroke="var(--primary)" stroke-width="2.5"/></svg>
+                    </div>
+                    <h2 class="home-card-title">Civics Test</h2>
+                    <p class="home-card-desc">Study the 100 or 128 civics questions for the naturalization interview.</p>
+                    <div class="home-card-progress" id="civicsProgress">
+                        <svg class="progress-ring-svg" viewBox="0 0 80 80">
+                            <circle class="progress-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="6"/>
+                            <circle class="progress-ring-fill" id="civicsRingFill" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="213.63" stroke-dashoffset="213.63"/>
+                        </svg>
+                        <span class="progress-ring-text" id="civicsRingText">0%</span>
+                    </div>
+                    <span class="home-card-action">Start Studying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </button>
+
+                <button class="home-card glass-card" id="englishCard" aria-label="Practice English Test">
+                    <div class="home-card-icon">
+                        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48"><path d="M6 10h16v28H6z" rx="2"/><path d="M26 10h16v28H26z" rx="2"/><path d="M12 18h4M12 24h4M12 30h4M32 18h4M32 24h4M32 30h4"/><circle cx="36" cy="8" r="6" fill="var(--secondary)" stroke="none" opacity="0.15"/><path d="M33.5 8l1.5 1.5 3-3" stroke="var(--secondary)" stroke-width="2"/></svg>
+                    </div>
+                    <h2 class="home-card-title">English Test</h2>
+                    <p class="home-card-desc">Practice reading, writing, and speaking for the English portion of the test.</p>
+                    <div class="home-card-progress" id="englishProgress">
+                        <svg class="progress-ring-svg" viewBox="0 0 80 80">
+                            <circle class="progress-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="6"/>
+                            <circle class="progress-ring-fill" id="englishRingFill" cx="40" cy="40" r="34" fill="none" stroke-width="6" stroke-dasharray="213.63" stroke-dashoffset="213.63"/>
+                        </svg>
+                        <span class="progress-ring-text" id="englishRingText">0%</span>
+                    </div>
+                    <span class="home-card-action">Start Practicing <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                </button>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats glass-card" id="quickStats">
+                <h3 class="quick-stats-title">Your Progress</h3>
+                <div class="quick-stats-grid" id="quickStatsGrid"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== CIVICS: TEST SELECTION ========== -->
+    <div id="civicsSelection" class="screen" style="display:none;">
+        <div class="selection-container">
+            <h1 class="selection-title">Choose Your<br><span class="gradient-text">Civics Test</span></h1>
+            <p class="selection-desc">The civics test is an oral test where a USCIS officer asks you up to 10 questions. You must answer 6 correctly to pass.</p>
             <div class="test-cards">
-                <button class="test-card glass-card" data-test="2008" aria-label="Start 2008 Test with 100 questions">
+                <button class="test-card glass-card" data-test="2008" aria-label="Start 2008 Test">
                     <div class="test-card-badge">Current Test</div>
                     <h2 class="test-card-title">2008 Test</h2>
                     <div class="test-card-stats">
-                        <div class="stat">
-                            <span class="stat-number">100</span>
-                            <span class="stat-label">Questions</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">6/10</span>
-                            <span class="stat-label">To Pass</span>
-                        </div>
+                        <div class="stat"><span class="stat-number">100</span><span class="stat-label">Questions</span></div>
+                        <div class="stat"><span class="stat-number">6/10</span><span class="stat-label">To Pass</span></div>
                     </div>
                     <p class="test-card-desc">The standard civics test used for most naturalization applicants.</p>
                     <span class="test-card-action">Start Studying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
                 </button>
-
-                <button class="test-card glass-card" data-test="2024" aria-label="Start 2024 Test with 128 questions">
+                <button class="test-card glass-card" data-test="2024" aria-label="Start 2024 Test">
                     <div class="test-card-badge test-card-badge--alt">Redesigned</div>
                     <h2 class="test-card-title">2024 Test</h2>
                     <div class="test-card-stats">
-                        <div class="stat">
-                            <span class="stat-number">128</span>
-                            <span class="stat-label">Questions</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">6/10</span>
-                            <span class="stat-label">To Pass</span>
-                        </div>
+                        <div class="stat"><span class="stat-number">128</span><span class="stat-label">Questions</span></div>
+                        <div class="stat"><span class="stat-number">6/10</span><span class="stat-label">To Pass</span></div>
                     </div>
                     <p class="test-card-desc">The redesigned civics test with updated and expanded questions.</p>
                     <span class="test-card-action">Start Studying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
                 </button>
             </div>
-
             <p class="selection-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: -2px; margin-right: 4px; flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:-2px;margin-right:4px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 Some answers may change due to elections or appointments. Always study the most current answers before your interview.
             </p>
         </div>
-    </main>
+    </div>
 
-    <!-- Study App (hidden until test selected) -->
-    <div id="studyApp" class="study-app" style="display:none;" role="main">
+    <!-- ========== CIVICS: STUDY APP ========== -->
+    <div id="studyApp" class="study-app screen" style="display:none;">
         <!-- Mode Tabs -->
         <nav class="mode-tabs" role="tablist" aria-label="Study modes">
             <button class="mode-tab active" role="tab" aria-selected="true" data-mode="flashcards" id="tab-flashcards" aria-controls="panel-flashcards">
@@ -169,7 +226,7 @@
                 <span>Listen</span>
             </button>
             <button class="mode-tab" role="tab" aria-selected="false" data-mode="practice" id="tab-practice" aria-controls="panel-practice">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <span>Practice Test</span>
             </button>
             <button class="mode-tab" role="tab" aria-selected="false" data-mode="study" id="tab-study" aria-controls="panel-study">
@@ -186,14 +243,12 @@
         <section id="panel-flashcards" class="mode-panel active" role="tabpanel" aria-labelledby="tab-flashcards">
             <div class="panel-toolbar">
                 <div class="toolbar-left">
-                    <select id="fcCategoryFilter" class="filter-select" aria-label="Filter by category">
-                        <option value="all">All Categories</option>
-                    </select>
+                    <select id="fcCategoryFilter" class="filter-select" aria-label="Filter by category"><option value="all">All Categories</option></select>
                     <button class="toolbar-btn" id="fcShuffle" aria-label="Shuffle cards" title="Shuffle">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
                         <span>Shuffle</span>
                     </button>
-                    <button class="toolbar-btn" id="fcWeakFilter" aria-label="Focus on weak questions" title="Focus on questions you've gotten wrong">
+                    <button class="toolbar-btn" id="fcWeakFilter" aria-label="Focus on weak questions" title="Focus weak">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         <span>Focus Weak</span>
                     </button>
@@ -203,17 +258,13 @@
                     <span class="progress-text" id="fcProgress">1 / 100</span>
                 </div>
             </div>
-
-            <!-- Progress Bar -->
             <div class="fc-progress-bar-container">
                 <div class="fc-progress-bar" id="fcProgressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-
             <div class="flashcard-container">
                 <button class="nav-arrow nav-arrow-left" id="fcPrev" aria-label="Previous card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-
                 <div class="flashcard-wrapper" id="flashcardWrapper" role="button" tabindex="0" aria-label="Click to flip card">
                     <div class="flashcard" id="flashcard">
                         <div class="flashcard-front">
@@ -232,13 +283,10 @@
                         </div>
                     </div>
                 </div>
-
                 <button class="nav-arrow nav-arrow-right" id="fcNext" aria-label="Next card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="9 18 15 12 9 6"/></svg>
                 </button>
             </div>
-
-            <!-- Self-assessment buttons (shown after flip) -->
             <div class="fc-assessment" id="fcAssessment" style="display:none;">
                 <button class="assess-btn assess-btn--correct" id="fcGotRight" aria-label="I got it right">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>
@@ -249,7 +297,6 @@
                     I Got It Wrong
                 </button>
             </div>
-
             <div class="flashcard-actions">
                 <button class="action-btn" id="fcReadAloud" aria-label="Read aloud">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -262,9 +309,7 @@
         <section id="panel-listen" class="mode-panel" role="tabpanel" aria-labelledby="tab-listen">
             <div class="panel-toolbar">
                 <div class="toolbar-left">
-                    <select id="listenCategoryFilter" class="filter-select" aria-label="Filter by category">
-                        <option value="all">All Categories</option>
-                    </select>
+                    <select id="listenCategoryFilter" class="filter-select" aria-label="Filter by category"><option value="all">All Categories</option></select>
                     <select id="listenContent" class="filter-select" aria-label="What to play">
                         <option value="both">Questions & Answers</option>
                         <option value="questions">Questions Only</option>
@@ -280,23 +325,21 @@
                     </select>
                 </div>
             </div>
-
             <div class="listen-display glass-card">
                 <div class="listen-progress" id="listenProgress">1 / 100</div>
                 <div class="listen-category" id="listenCategory"></div>
                 <div class="listen-question" id="listenQuestion"></div>
                 <div class="listen-answer" id="listenAnswer"></div>
             </div>
-
             <div class="listen-controls">
-                <button class="listen-btn" id="listenPrev" aria-label="Previous question">
+                <button class="listen-btn" id="listenPrev" aria-label="Previous">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
                 </button>
                 <button class="listen-btn listen-btn--play" id="listenPlayPause" aria-label="Play">
                     <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                     <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                 </button>
-                <button class="listen-btn" id="listenNext" aria-label="Next question">
+                <button class="listen-btn" id="listenNext" aria-label="Next">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
                 </button>
             </div>
@@ -304,27 +347,23 @@
 
         <!-- Practice Test Panel -->
         <section id="panel-practice" class="mode-panel" role="tabpanel" aria-labelledby="tab-practice">
-            <!-- Start screen -->
             <div id="practiceStart" class="practice-start">
                 <div class="practice-info-card glass-card">
                     <div class="practice-info-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     </div>
                     <h2>Practice Test</h2>
-                    <p>Simulate the real USCIS civics test. Choose your settings and begin.</p>
-
+                    <p>Simulate the real USCIS civics test.</p>
                     <div class="practice-config">
                         <div class="config-row">
                             <label class="config-label" for="practiceQuestionCount">Number of questions</label>
                             <div class="config-input-group">
-                                <input type="number" id="practiceQuestionCount" class="config-input" value="10" min="1" max="100" aria-label="Number of questions">
+                                <input type="number" id="practiceQuestionCount" class="config-input" value="10" min="1" max="128" aria-label="Number of questions">
                                 <span class="config-hint" id="practicePassInfo">Need 6 correct to pass (60%)</span>
                             </div>
                         </div>
                         <div class="config-row">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="practiceTimer"> Enable timer (30s per question)
-                            </label>
+                            <label class="checkbox-label"><input type="checkbox" id="practiceTimer"> Enable timer (30s per question)</label>
                         </div>
                         <div class="config-row">
                             <label class="checkbox-label streak-label">
@@ -335,30 +374,23 @@
                             <p class="config-desc">Get 6 correct in a row to pass. One wrong answer resets the streak!</p>
                         </div>
                     </div>
-
                     <button class="primary-btn" id="practiceBegin">
                         <span>Begin Test</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </div>
             </div>
-
-            <!-- Question screen -->
             <div id="practiceQuestion" class="practice-question-screen" style="display:none;">
                 <div class="practice-header">
                     <span class="practice-qnum" id="practiceQNum">Question 1 of 10</span>
                     <span class="practice-timer" id="practiceTimerDisplay" style="display:none;">0:30</span>
                     <span class="practice-score" id="practiceScoreLive"></span>
                 </div>
-
-                <!-- Streak counter (hidden unless streak mode) -->
                 <div class="streak-counter" id="streakCounter" style="display:none;">
                     <div class="streak-flames" id="streakFlames"></div>
                     <div class="streak-number" id="streakNumber">0</div>
-                    <div class="streak-label">in a row</div>
+                    <div class="streak-label-sm">in a row</div>
                 </div>
-
-                <!-- Progress ring -->
                 <div class="practice-progress-ring-container" id="practiceProgressRing">
                     <svg class="progress-ring" viewBox="0 0 120 120">
                         <circle class="progress-ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="8"/>
@@ -366,13 +398,10 @@
                     </svg>
                     <div class="progress-ring-text" id="progressRingText">0/10</div>
                 </div>
-
                 <div class="practice-question-text" id="practiceQuestionText"></div>
                 <div class="practice-choices" id="practiceChoices" role="radiogroup" aria-label="Answer choices"></div>
                 <button class="primary-btn" id="practiceSubmitAnswer" disabled>Submit Answer</button>
             </div>
-
-            <!-- Results screen -->
             <div id="practiceResults" class="practice-results" style="display:none;">
                 <div class="results-card glass-card">
                     <div class="results-checkmark" id="resultsCheckmark"></div>
@@ -391,12 +420,8 @@
         <!-- Study Panel -->
         <section id="panel-study" class="mode-panel" role="tabpanel" aria-labelledby="tab-study">
             <div class="panel-toolbar">
-                <div class="toolbar-left">
-                    <span class="known-count" id="knownCount">0 marked as known</span>
-                </div>
-                <div class="toolbar-right">
-                    <button class="toolbar-btn" id="clearKnown" aria-label="Reset known questions">Reset Progress</button>
-                </div>
+                <div class="toolbar-left"><span class="known-count" id="knownCount">0 marked as known</span></div>
+                <div class="toolbar-right"><button class="toolbar-btn" id="clearKnown" aria-label="Reset known">Reset Progress</button></div>
             </div>
             <div class="study-categories" id="studyCategories"></div>
         </section>
@@ -407,8 +432,154 @@
         </section>
     </div>
 
+    <!-- ========== ENGLISH: TEST SELECTION ========== -->
+    <div id="englishSelection" class="screen" style="display:none;">
+        <div class="selection-container">
+            <h1 class="selection-title">Practice Your<br><span class="gradient-text">English Skills</span></h1>
+            <p class="selection-desc">The English test has three components: reading, writing, and speaking. Practice each one below or take a full mock test.</p>
+
+            <div class="english-mode-cards">
+                <button class="english-mode-card glass-card" data-emode="reading" aria-label="Reading Practice">
+                    <div class="emode-icon">&#128214;</div>
+                    <h3>Reading</h3>
+                    <p>Read sentences aloud and check your pronunciation.</p>
+                    <span class="emode-count" id="readingCount">55 sentences</span>
+                </button>
+                <button class="english-mode-card glass-card" data-emode="writing" aria-label="Writing Practice">
+                    <div class="emode-icon">&#9997;&#65039;</div>
+                    <h3>Writing (Dictation)</h3>
+                    <p>Listen to a sentence and type what you hear.</p>
+                    <span class="emode-count" id="writingCount">55 sentences</span>
+                </button>
+                <button class="english-mode-card glass-card" data-emode="speaking" aria-label="Speaking Practice">
+                    <div class="emode-icon">&#127908;</div>
+                    <h3>Speaking</h3>
+                    <p>Answer interview-style questions out loud.</p>
+                    <span class="emode-count" id="speakingCount">40 prompts</span>
+                </button>
+                <button class="english-mode-card glass-card english-mode-card--mock" data-emode="mock" aria-label="Full Mock Test">
+                    <div class="emode-icon">&#127942;</div>
+                    <h3>Full Mock Test</h3>
+                    <p>3 reading + 3 writing + speaking — just like the real test.</p>
+                    <span class="emode-count">Timed</span>
+                </button>
+            </div>
+
+            <div class="speech-api-warning" id="speechApiWarning" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Speech recognition is not supported in your browser. Reading and Speaking practice require Chrome or Edge for the best experience.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== ENGLISH: PRACTICE SCREENS ========== -->
+    <div id="englishPractice" class="screen" style="display:none;">
+        <!-- Reading Practice -->
+        <div id="engReading" class="eng-section" style="display:none;">
+            <div class="eng-header">
+                <h2 class="eng-title">&#128214; Reading Practice</h2>
+                <span class="eng-progress" id="readingProgress">1 / 55</span>
+            </div>
+            <div class="eng-card glass-card">
+                <div class="eng-sentence" id="readingSentence"></div>
+                <div class="eng-result" id="readingResult" style="display:none;"></div>
+                <div class="eng-score-bar" id="readingScoreBar" style="display:none;"></div>
+            </div>
+            <div class="eng-actions">
+                <button class="action-btn action-btn--secondary" id="readingListenFirst" aria-label="Listen first">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    Listen First
+                </button>
+                <button class="fab-btn" id="readingMic" aria-label="Read aloud">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
+            </div>
+            <div class="mic-status" id="readingMicStatus" style="display:none;">
+                <div class="mic-wave"><span></span><span></span><span></span><span></span><span></span></div>
+                <span class="mic-status-text">Listening...</span>
+            </div>
+            <div class="eng-nav">
+                <button class="nav-btn" id="readingPrev" aria-label="Previous">&#8592; Previous</button>
+                <button class="toolbar-btn" id="readingShuffle" aria-label="Shuffle">Shuffle</button>
+                <button class="nav-btn" id="readingNext" aria-label="Next">Next &#8594;</button>
+            </div>
+        </div>
+
+        <!-- Writing Practice -->
+        <div id="engWriting" class="eng-section" style="display:none;">
+            <div class="eng-header">
+                <h2 class="eng-title">&#9997;&#65039; Writing Practice (Dictation)</h2>
+                <span class="eng-progress" id="writingProgress">1 / 55</span>
+            </div>
+            <div class="eng-card glass-card">
+                <div class="eng-writing-prompt">
+                    <button class="action-btn action-btn--secondary" id="writingPlay" aria-label="Play sentence">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        Play Sentence
+                    </button>
+                    <button class="action-btn action-btn--ghost" id="writingReplay" aria-label="Replay" style="display:none;">Replay</button>
+                </div>
+                <div class="eng-writing-input-row">
+                    <input type="text" class="eng-input" id="writingInput" placeholder="Type what you hear..." autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <button class="primary-btn" id="writingCheck">Check</button>
+                </div>
+                <div class="eng-result" id="writingResult" style="display:none;"></div>
+                <div class="eng-score-bar" id="writingScoreBar" style="display:none;"></div>
+            </div>
+            <div class="eng-nav">
+                <button class="nav-btn" id="writingPrev" aria-label="Previous">&#8592; Previous</button>
+                <button class="toolbar-btn" id="writingShuffle" aria-label="Shuffle">Shuffle</button>
+                <button class="nav-btn" id="writingNext" aria-label="Next">Next &#8594;</button>
+            </div>
+        </div>
+
+        <!-- Speaking Practice -->
+        <div id="engSpeaking" class="eng-section" style="display:none;">
+            <div class="eng-header">
+                <h2 class="eng-title">&#127908; Speaking Practice</h2>
+                <span class="eng-progress" id="speakingProgress">1 / 40</span>
+            </div>
+            <div class="eng-card glass-card">
+                <div class="eng-speaking-prompt" id="speakingPrompt"></div>
+                <div class="eng-speaking-sample" id="speakingSample" style="display:none;">
+                    <strong>Sample answer:</strong> <span id="speakingSampleText"></span>
+                </div>
+                <div class="eng-speaking-transcript" id="speakingTranscript" style="display:none;">
+                    <strong>You said:</strong> <span id="speakingTranscriptText"></span>
+                </div>
+                <div class="eng-speaking-feedback" id="speakingFeedback" style="display:none;"></div>
+            </div>
+            <div class="eng-actions">
+                <button class="fab-btn" id="speakingMic" aria-label="Speak your answer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
+            </div>
+            <div class="mic-status" id="speakingMicStatus" style="display:none;">
+                <div class="mic-wave"><span></span><span></span><span></span><span></span><span></span></div>
+                <span class="mic-status-text">Listening...</span>
+            </div>
+            <div class="eng-nav">
+                <button class="nav-btn" id="speakingPrev" aria-label="Previous">&#8592; Previous</button>
+                <button class="toolbar-btn" id="speakingShuffle" aria-label="Shuffle">Shuffle</button>
+                <button class="nav-btn" id="speakingNext" aria-label="Next">Next &#8594;</button>
+            </div>
+        </div>
+
+        <!-- Mock Test -->
+        <div id="engMock" class="eng-section" style="display:none;">
+            <div class="eng-header">
+                <h2 class="eng-title">&#127942; Full English Mock Test</h2>
+                <span class="eng-progress" id="mockProgress"></span>
+                <span class="mock-timer" id="mockTimer"></span>
+            </div>
+            <div class="eng-card glass-card" id="mockContent"></div>
+            <div class="eng-actions" id="mockActions"></div>
+            <div id="mockResults" style="display:none;"></div>
+        </div>
+    </div>
+
     <footer class="footer">
-        <p>Study materials based on official USCIS civics test questions. This is a study aid and not affiliated with USCIS.</p>
+        <p>Study materials based on official USCIS test questions. This is a study aid and not affiliated with USCIS.</p>
         <p>&copy; O'Brien Immigration Law</p>
     </footer>
 
