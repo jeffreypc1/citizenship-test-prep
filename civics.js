@@ -381,8 +381,183 @@
         // Progress rings
         updateHomeProgress();
 
+        // Card status indicators
+        updateCardStatuses();
+
+        // Ready to apply / progress section
+        updateReadyToApply();
+
         // Quick stats
         renderQuickStats();
+
+        // FAQ accordion
+        initFaqAccordion();
+    }
+
+    // ---- Card Status Indicators ----
+    function hasCivicsPass() {
+        const history = LS.get("testHistory", []);
+        return history.some(h => (h.score / h.total * 100) >= 60);
+    }
+
+    function hasEnglishPass() {
+        const r = LS.get("eng_reading_done", []).length;
+        const w = LS.get("eng_writing_done", []).length;
+        const s = LS.get("eng_speaking_done", []).length;
+        return r >= 10 && w >= 10 && s >= 5;
+    }
+
+    function getEligibilityStatus() {
+        const results = LS.get("eligibility_results", null);
+        if (!results || !results.length) return { done: false, allGreen: false, greens: 0, yellows: 0, reds: 0, total: 0, unchecked: 11 };
+        let greens = 0, yellows = 0, reds = 0;
+        results.forEach(r => {
+            if (r && r.color === "green") greens++;
+            else if (r && r.color === "yellow") yellows++;
+            else if (r && r.color === "red") reds++;
+        });
+        const answered = greens + yellows + reds;
+        return { done: answered > 0, allGreen: greens === 11 && yellows === 0 && reds === 0, greens, yellows, reds, total: 11, unchecked: 11 - answered };
+    }
+
+    function updateCardStatuses() {
+        // Civics status
+        const civicsEl = $("#civicsStatus");
+        if (civicsEl) {
+            if (hasCivicsPass()) {
+                civicsEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Passed!</span>';
+            } else {
+                civicsEl.innerHTML = '';
+            }
+        }
+
+        // English status
+        const englishEl = $("#englishStatus");
+        if (englishEl) {
+            if (hasEnglishPass()) {
+                englishEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Practiced!</span>';
+            } else {
+                englishEl.innerHTML = '';
+            }
+        }
+
+        // Eligibility donut + status
+        const eligStatus = getEligibilityStatus();
+        updateEligibilityDonut(eligStatus);
+        const eligEl = $("#eligibilityStatus");
+        if (eligEl) {
+            if (!eligStatus.done) {
+                eligEl.innerHTML = '';
+            } else if (eligStatus.allGreen) {
+                eligEl.innerHTML = '<span class="status-badge status-badge--pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Ready to Apply!</span>';
+            } else if (eligStatus.reds > 0) {
+                eligEl.innerHTML = '<span class="status-badge status-badge--fail">Issues Found</span>';
+            } else {
+                eligEl.innerHTML = '<span class="status-badge status-badge--warn">Needs Attention</span>';
+            }
+        }
+    }
+
+    function updateEligibilityDonut(status) {
+        const total = status.total;
+        const circumference = 2 * Math.PI * 34; // ~213.63
+        const greenArc = (status.greens / total) * circumference;
+        const yellowArc = (status.yellows / total) * circumference;
+        const redArc = (status.reds / total) * circumference;
+
+        const greenCircle = $(".elig-donut-green");
+        const yellowCircle = $(".elig-donut-yellow");
+        const redCircle = $(".elig-donut-red");
+        const textEl = $("#eligRingText");
+
+        if (!greenCircle) return;
+
+        // Each segment: dasharray = "arcLen remainingCircumference", dashoffset = -cumulativeOffset
+        // We rotate the SVG -90deg via CSS so 0 is top
+        let offset = 0;
+
+        greenCircle.style.strokeDasharray = greenArc + " " + (circumference - greenArc);
+        greenCircle.style.strokeDashoffset = -offset;
+        offset += greenArc;
+
+        yellowCircle.style.strokeDasharray = yellowArc + " " + (circumference - yellowArc);
+        yellowCircle.style.strokeDashoffset = -offset;
+        offset += yellowArc;
+
+        redCircle.style.strokeDasharray = redArc + " " + (circumference - redArc);
+        redCircle.style.strokeDashoffset = -offset;
+
+        if (textEl) {
+            if (status.done) {
+                textEl.textContent = status.greens + "/" + total;
+            } else {
+                textEl.textContent = "";
+            }
+        }
+    }
+
+    // ---- Ready to Apply Section ----
+    let readyToApplyConfettiFired = false;
+
+    function updateReadyToApply() {
+        const container = $("#readyToApply");
+        if (!container) return;
+
+        const civicsPassed = hasCivicsPass();
+        const englishPassed = hasEnglishPass();
+        const eligStatus = getEligibilityStatus();
+        const allReady = civicsPassed && englishPassed && eligStatus.allGreen;
+
+        if (allReady) {
+            container.innerHTML = '<div class="ready-card">'
+                + '<div class="ready-checkmark"><svg viewBox="0 0 52 52" width="64" height="64"><circle class="ready-checkmark-circle" cx="26" cy="26" r="25" fill="none"/><path class="ready-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></div>'
+                + '<h2 class="ready-title">You\'re Ready to Apply for Citizenship!</h2>'
+                + '<p class="ready-subtitle">You\'ve passed the civics test, completed English practice, and cleared the eligibility check. The next step is filing your N-400.</p>'
+                + '<a href="https://www.uscis.gov/n-400" target="_blank" rel="noopener" class="ready-cta">File Form N-400 on USCIS.gov <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>'
+                + '<p class="ready-encouragement">Congratulations on reaching this milestone. You\'ve put in the work and you\'re ready!</p>'
+                + '</div>';
+            if (!readyToApplyConfettiFired) {
+                readyToApplyConfettiFired = true;
+                setTimeout(fireConfetti, 400);
+            }
+        } else {
+            const items = [
+                { label: "Civics Test", done: civicsPassed, doneText: "Passed a practice test", todoText: "Score 60%+ on a practice test" },
+                { label: "English Practice", done: englishPassed, doneText: "Completed enough exercises", todoText: "Complete 10 reading, 10 writing, 5 speaking" },
+                { label: "Eligibility Check", done: eligStatus.allGreen, doneText: "All checks passed", todoText: eligStatus.done ? "Resolve flagged items" : "Complete the eligibility check" },
+            ];
+            let html = '<div class="progress-checklist">'
+                + '<h3 class="progress-checklist-title">Your Citizenship Readiness</h3>'
+                + '<div class="progress-checklist-items">';
+            items.forEach(item => {
+                html += '<div class="progress-checklist-item ' + (item.done ? "progress-checklist-item--done" : "") + '">'
+                    + '<span class="progress-checklist-icon">' + (item.done
+                        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>'
+                        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/></svg>')
+                    + '</span>'
+                    + '<span class="progress-checklist-label">' + item.label + '</span>'
+                    + '<span class="progress-checklist-status">' + (item.done ? item.doneText : item.todoText) + '</span>'
+                    + '</div>';
+            });
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+    }
+
+    // ---- FAQ Accordion ----
+    function initFaqAccordion() {
+        const questions = document.querySelectorAll(".faq-question");
+        questions.forEach(q => {
+            // Remove old listeners by checking data attribute
+            if (q.dataset.faqBound) return;
+            q.dataset.faqBound = "1";
+            q.addEventListener("click", () => {
+                const item = q.parentElement;
+                const isOpen = item.classList.contains("faq-open");
+                item.classList.toggle("faq-open", !isOpen);
+                q.setAttribute("aria-expanded", !isOpen);
+            });
+        });
     }
 
     function renderAchievements() {
@@ -2123,6 +2298,9 @@
         html += '</div>';
 
         content.innerHTML = html;
+
+        // Save eligibility results to localStorage
+        LS.set("eligibility_results", eligResults);
 
         // Confetti if all green
         if (reds === 0 && yellows === 0) {

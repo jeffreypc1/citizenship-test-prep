@@ -1081,6 +1081,220 @@ body {
 }
 .elig-start-over:hover { background: var(--primary); color: #fff; }
 
+/* ---- Card Status Badges ---- */
+.home-card-status { margin-bottom: 12px; min-height: 28px; }
+.status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.status-badge--pass {
+    background: var(--success-bg); color: var(--success);
+    border: 1px solid var(--success);
+}
+.status-badge--fail {
+    background: var(--error-bg); color: var(--error);
+    border: 1px solid var(--error);
+}
+.status-badge--warn {
+    background: var(--warning-bg); color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+/* Eligibility Donut */
+.elig-donut-svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+.elig-donut-green { stroke: var(--success); stroke-linecap: round; transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease; }
+.elig-donut-yellow { stroke: var(--warning); stroke-linecap: round; transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease; }
+.elig-donut-red { stroke: var(--error); stroke-linecap: round; transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease; }
+
+/* ---- Ready to Apply Card ---- */
+.ready-card {
+    text-align: center;
+    padding: 48px 32px;
+    margin-bottom: 24px;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, #ecfdf5 0%, #dbeafe 50%, #ede9fe 100%);
+    border: 2px solid var(--success);
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15);
+    animation: fadeSlideIn 0.5s ease;
+}
+[data-theme="dark"] .ready-card {
+    background: linear-gradient(135deg, #022c22 0%, #172554 50%, #2e1065 100%);
+}
+.ready-checkmark { margin-bottom: 20px; display: inline-block; }
+.ready-checkmark-circle {
+    stroke: var(--success); stroke-width: 2;
+    stroke-dasharray: 166; stroke-dashoffset: 166;
+    animation: readyCircle 0.6s ease forwards;
+}
+.ready-checkmark-check {
+    stroke: var(--success); stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 48; stroke-dashoffset: 48;
+    animation: readyCheck 0.3s 0.5s ease forwards;
+}
+@keyframes readyCircle { to { stroke-dashoffset: 0; } }
+@keyframes readyCheck { to { stroke-dashoffset: 0; } }
+
+.ready-title {
+    font-size: 1.6rem; font-weight: 800;
+    color: var(--success); margin-bottom: 12px;
+    letter-spacing: -0.01em;
+}
+.ready-subtitle {
+    font-size: 1rem; color: var(--text-secondary);
+    max-width: 520px; margin: 0 auto 24px; line-height: 1.6;
+}
+.ready-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px;
+    background: var(--success); color: #fff;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem; font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    transition: all var(--transition-fast);
+}
+.ready-cta:hover { background: #059669; transform: translateY(-1px); }
+.ready-encouragement {
+    margin-top: 16px; font-size: 0.9rem;
+    color: var(--text-muted); font-style: italic;
+}
+
+/* ---- Progress Checklist (when not all ready) ---- */
+.progress-checklist {
+    padding: 24px; margin-bottom: 24px;
+    border-radius: var(--border-radius);
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+.progress-checklist-title {
+    font-size: 0.85rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); margin-bottom: 16px;
+}
+.progress-checklist-items { display: flex; flex-direction: column; gap: 12px; }
+.progress-checklist-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--border-radius-xs);
+    background: var(--bg-page); border: 1px solid var(--border-color);
+}
+.progress-checklist-item--done { background: var(--success-bg); border-color: var(--success); }
+.progress-checklist-icon { flex-shrink: 0; display: flex; align-items: center; }
+.progress-checklist-item--done .progress-checklist-icon { color: var(--success); }
+.progress-checklist-item:not(.progress-checklist-item--done) .progress-checklist-icon { color: var(--text-muted); }
+.progress-checklist-label { font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+.progress-checklist-status { font-size: 0.8rem; color: var(--text-muted); margin-left: auto; text-align: right; }
+.progress-checklist-item--done .progress-checklist-status { color: var(--success); }
+
+/* ---- FAQ Section ---- */
+.faq-section {
+    margin-top: 32px; margin-bottom: 32px;
+}
+.faq-section-title {
+    font-size: 1.5rem; font-weight: 800;
+    letter-spacing: -0.01em; margin-bottom: 6px;
+}
+.faq-section-subtitle {
+    font-size: 0.95rem; color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+.faq-category { margin-bottom: 20px; }
+.faq-category-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 10px; color: var(--text-primary);
+}
+.faq-cat-icon { font-size: 1.15rem; }
+.faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xs);
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    overflow: hidden;
+    transition: border-color var(--transition-fast);
+}
+.faq-item.faq-open { border-left: 3px solid var(--primary); }
+.faq-question {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 14px 18px;
+    border: none; background: none;
+    font-size: 0.92rem; font-weight: 600; font-family: inherit;
+    color: var(--text-primary); cursor: pointer;
+    text-align: left; line-height: 1.4; gap: 12px;
+}
+.faq-question:hover { color: var(--primary); }
+.faq-chevron {
+    flex-shrink: 0; display: flex; align-items: center;
+    transition: transform 0.25s ease;
+    color: var(--text-muted);
+}
+.faq-open .faq-chevron { transform: rotate(180deg); }
+.faq-answer {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 18px;
+}
+.faq-open .faq-answer {
+    max-height: 300px;
+    padding: 0 18px 16px;
+}
+.faq-answer p {
+    font-size: 0.9rem; color: var(--text-secondary);
+    line-height: 1.6; margin: 0;
+}
+
+/* ---- Resources Section ---- */
+.resources-section {
+    margin-bottom: 32px;
+}
+.resources-section-title {
+    font-size: 1.5rem; font-weight: 800;
+    letter-spacing: -0.01em; margin-bottom: 6px;
+}
+.resources-section-subtitle {
+    font-size: 0.95rem; color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+.resources-group-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.05rem; font-weight: 700;
+    margin-bottom: 14px; margin-top: 8px;
+}
+.resource-badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 12px; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.resource-badge--nonprofit { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.resource-badge--attorney { background: var(--secondary-light); color: var(--secondary); border: 1px solid var(--secondary); }
+.resources-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+}
+.resource-card {
+    padding: 20px;
+    transition: transform var(--transition-spring), box-shadow var(--transition);
+}
+.resource-card:hover { transform: translateY(-2px); }
+.resource-card-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+.resource-card-firm { font-size: 0.8rem; color: var(--text-muted); font-style: italic; margin-bottom: 6px; }
+.resource-card-detail { font-size: 0.85rem; margin-bottom: 6px; }
+.resource-card-detail a {
+    color: var(--primary); text-decoration: none; font-weight: 600;
+}
+.resource-card-detail a:hover { text-decoration: underline; }
+.resource-card-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4; }
+.resources-disclaimer {
+    font-size: 0.8rem; color: var(--text-muted);
+    text-align: center; font-style: italic;
+    padding: 12px; background: var(--bg-page);
+    border-radius: var(--border-radius-xs);
+    border: 1px solid var(--border-color);
+}
+
 /* ---- Footer ---- */
 .footer {
     text-align: center; padding: 24px 20px;
@@ -1142,6 +1356,13 @@ body {
     .header-inner { padding: 10px 14px; }
 
     .quick-stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .ready-card { padding: 32px 20px; }
+    .ready-title { font-size: 1.3rem; }
+    .progress-checklist-item { flex-wrap: wrap; }
+    .progress-checklist-status { margin-left: 30px; width: 100%; text-align: left; }
+    .resources-grid { grid-template-columns: 1fr; }
+    .faq-section-title, .resources-section-title { font-size: 1.25rem; }
 }
 
 /* Touch targets */
