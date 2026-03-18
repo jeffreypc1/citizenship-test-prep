@@ -21,7 +21,7 @@
     };
 
     // ---- State ----
-    let currentScreen = "home"; // home, civicsSelection, studyApp, englishSelection, englishPractice
+    let currentScreen = "home"; // home, civicsSelection, studyApp, englishSelection, englishPractice, eligibilityCheck
     let navigationStack = [];
 
     // Civics state
@@ -275,6 +275,7 @@
         // Home cards
         $("#civicsCard").addEventListener("click", () => navigateTo("civicsSelection"));
         $("#englishCard").addEventListener("click", () => navigateTo("englishSelection"));
+        $("#eligibilityCard").addEventListener("click", () => { eligStartOver(); navigateTo("eligibilityCheck"); });
 
         // Civics test selection
         $$(".test-card[data-test]").forEach(card => {
@@ -323,6 +324,7 @@
         hide($("#studyApp"));
         hide($("#englishSelection"));
         hide($("#englishPractice"));
+        hide($("#eligibilityCheck"));
 
         // Show back button if not home
         if (screen === "home") {
@@ -352,6 +354,9 @@
                 break;
             case "englishPractice":
                 show($("#englishPractice"));
+                break;
+            case "eligibilityCheck":
+                show($("#eligibilityCheck"));
                 break;
         }
     }
@@ -1816,6 +1821,315 @@
         const clone = el.cloneNode(true);
         el.parentNode.replaceChild(clone, el);
         clone.addEventListener("click", handler);
+    }
+
+    // ================================================================
+    //  N-400 ELIGIBILITY CHECK
+    // ================================================================
+
+    let eligStep = 0;
+    let eligResults = [];   // {label, color, text}
+    let eligTrack = 5;      // 3 or 5 year track
+    let eligIsMale = false;
+
+    const ELIG_LABELS = [
+        "Age", "Green Card Status", "Basis for Filing", "Physical Presence",
+        "Long Trips", "State Residence", "Selective Service", "Taxes",
+        "Criminal History", "English & Civics", "Oath of Allegiance"
+    ];
+
+    function eligStartOver() {
+        eligStep = 0;
+        eligResults = [];
+        eligTrack = 5;
+        eligIsMale = false;
+        eligRenderStep();
+    }
+
+    function eligRenderStep() {
+        const total = 11;
+        const fill = $("#eligProgressFill");
+        const label = $("#eligStepLabel");
+        const content = $("#eligContent");
+        if (!fill || !content) return;
+
+        if (eligStep < total) {
+            fill.style.width = ((eligStep / total) * 100) + "%";
+            label.textContent = "Step " + (eligStep + 1) + " of " + total;
+        } else {
+            fill.style.width = "100%";
+            label.textContent = "Results";
+        }
+
+        switch (eligStep) {
+            case 0: return eligRenderQ("Are you at least 18 years old?", [
+                { text: "Yes", color: "green", msg: "You meet the age requirement." },
+                { text: "No", color: "red", msg: "You must be at least 18 to apply for naturalization." }
+            ]);
+            case 1: return eligRenderQ("Are you a Lawful Permanent Resident (green card holder)?", [
+                { text: "Yes", color: "green", msg: "You have the required immigration status." },
+                { text: "No", color: "red", msg: "You must have a green card before applying for citizenship." }
+            ]);
+            case 2: return eligRenderQ("Which best describes your situation?", [
+                { text: "I've been a permanent resident for 5+ years", color: "green", msg: "You meet the continuous residence requirement for the 5-year track.", fn() { eligTrack = 5; } },
+                { text: "I've been a permanent resident for 3+ years AND married to a US citizen", color: "green", msg: "You meet the continuous residence requirement for the 3-year track.", fn() { eligTrack = 3; } },
+                { text: "I've been a permanent resident for less than 3 years", color: "red", msg: "You may need to wait longer before applying." },
+                { text: "I'm not sure", color: "yellow", msg: "Check your green card for the date you became a permanent resident." }
+            ]);
+            case 3: {
+                const q = eligTrack === 3
+                    ? "Have you been physically present in the United States for at least 18 months out of the last 3 years?"
+                    : "Have you been physically present in the United States for at least 30 months (2.5 years) out of the last 5 years?";
+                return eligRenderQ(q, [
+                    { text: "Yes", color: "green", msg: "You meet the physical presence requirement." },
+                    { text: "Not sure", color: "yellow", msg: "Add up all your time outside the US. Every day abroad counts against you." },
+                    { text: "No", color: "red", msg: "You may need to wait until you meet the physical presence requirement." }
+                ]);
+            }
+            case 4: return eligRenderQ("Have you taken any single trip outside the United States lasting 6 months or longer?", [
+                { text: "No", color: "green", msg: "Your continuous residence is intact." },
+                { text: "Yes, between 6\u201312 months", color: "yellow", msg: "Trips of 6\u201312 months may disrupt your continuous residence. You may need to show you maintained ties to the US. Consider consulting an attorney." },
+                { text: "Yes, 1 year or longer", color: "red", msg: "A trip of 1+ year generally breaks continuous residence. You may need to restart the waiting period. Consult an immigration attorney." }
+            ]);
+            case 5: return eligRenderQ("Have you lived in the state where you plan to file for at least 3 months?", [
+                { text: "Yes", color: "green", msg: "You meet the state residence requirement." },
+                { text: "No", color: "yellow", msg: "You\u2019ll need to wait or file in your previous state." }
+            ]);
+            case 6: return eligRenderSelectiveService();
+            case 7: return eligRenderQ("Have you filed all required federal, state, and local tax returns since becoming a permanent resident?", [
+                { text: "Yes", color: "green", msg: "Good. Keep copies of your tax transcripts for the interview." },
+                { text: "No, but I can file them before my interview", color: "yellow", msg: "File any missing returns as soon as possible. USCIS may ask for tax transcripts." },
+                { text: "No, and I\u2019m not sure I can", color: "red", msg: "Failure to file required tax returns may be a bar to good moral character. Consider consulting a tax professional and an immigration attorney." }
+            ]);
+            case 8: return eligRenderQ('Have you EVER been arrested, cited, charged, or convicted of a crime or offense (including traffic offenses like DUI)?', [
+                { text: "No, never", color: "green", msg: "No criminal history concerns." },
+                { text: "Yes, only minor traffic tickets (no DUI, no criminal charges)", color: "yellow", msg: "You must disclose everything on your application, but minor traffic tickets are usually not a problem." },
+                { text: "Yes, I have been arrested or convicted of a crime", color: "red", msg: 'Criminal history requires careful analysis. Some offenses may be a bar to citizenship. Strongly recommend consulting an immigration attorney before applying.<br><br><strong>Important:</strong> You must disclose ALL arrests and charges, even if dismissed, expunged, or sealed.' }
+            ]);
+            case 9: return eligRenderQ("Are you comfortable with basic English reading, writing, and speaking?", [
+                { text: "Yes", color: "green", msg: "Practice using the Civics Test and English Test sections on this site!" },
+                { text: "I\u2019m studying", color: "green", msg: "Keep practicing! Use the study tools on this site." },
+                { text: "I may qualify for an exemption (age/disability)", color: "green", msg: 'You may qualify for an exemption. <a href="https://www.uscis.gov/citizenship/exceptions-and-accommodations" target="_blank" rel="noopener">Check USCIS.gov for details</a>.' },
+                { text: "I\u2019m not sure", color: "yellow", msg: "You\u2019ll need to be able to read, write, and speak basic English. Start practicing now!" }
+            ]);
+            case 10: return eligRenderQ("Are you willing to take the Oath of Allegiance to the United States?", [
+                { text: "Yes", color: "green", msg: "Great. The Oath is the final step of the naturalization ceremony." },
+                { text: "Yes, but with religious/conscientious objector modification", color: "green", msg: "Modifications are available for religious beliefs. You can be excused from the \u201Cbear arms\u201D portion." },
+                { text: "No or not sure", color: "yellow", msg: "You must be willing to swear loyalty to the United States to become a citizen." }
+            ]);
+            default: return eligRenderSummary();
+        }
+    }
+
+    function eligRenderQ(question, options) {
+        const content = $("#eligContent");
+        let html = '<div class="elig-step"><div class="glass-card" style="padding:32px;">';
+        html += '<div class="elig-question">' + question + '</div>';
+        html += '<div class="elig-options" id="eligOptions">';
+        options.forEach((opt, i) => {
+            html += '<button class="elig-option" data-idx="' + i + '">' + opt.text + '</button>';
+        });
+        html += '</div>';
+        html += '<div id="eligResultArea"></div>';
+        html += '</div></div>';
+        content.innerHTML = html;
+
+        content.querySelectorAll(".elig-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const idx = parseInt(btn.dataset.idx);
+                const opt = options[idx];
+                // Disable all options
+                content.querySelectorAll(".elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                btn.style.opacity = "1";
+                btn.style.borderColor = opt.color === "green" ? "var(--success)" : opt.color === "yellow" ? "var(--warning)" : "var(--error)";
+                if (opt.fn) opt.fn();
+                // Show result + next
+                const area = $("#eligResultArea");
+                area.innerHTML = '<div class="elig-result elig-result--' + opt.color + '">' + opt.msg + '</div>'
+                    + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                // Store result
+                eligResults[eligStep] = { label: ELIG_LABELS[eligStep], color: opt.color, text: opt.msg };
+                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                area.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            });
+        });
+    }
+
+    // Selective Service — multi-part conditional
+    function eligRenderSelectiveService() {
+        const content = $("#eligContent");
+        let html = '<div class="elig-step"><div class="glass-card" style="padding:32px;">';
+        html += '<div class="elig-question">Are you male?</div>';
+        html += '<div class="elig-options" id="eligOptions">';
+        html += '<button class="elig-option" data-choice="no">No</button>';
+        html += '<button class="elig-option" data-choice="yes">Yes</button>';
+        html += '</div>';
+        html += '<div id="eligResultArea"></div>';
+        html += '</div></div>';
+        content.innerHTML = html;
+
+        content.querySelectorAll(".elig-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                content.querySelectorAll(".elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                btn.style.opacity = "1";
+                if (btn.dataset.choice === "no") {
+                    eligIsMale = false;
+                    eligResults[6] = { label: "Selective Service", color: "green", text: "Selective Service registration is not required." };
+                    const area = $("#eligResultArea");
+                    area.innerHTML = '<div class="elig-result elig-result--green">Selective Service registration is not required for you.</div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                } else {
+                    eligIsMale = true;
+                    eligSSPart2();
+                }
+            });
+        });
+    }
+
+    function eligSSPart2() {
+        const area = $("#eligResultArea");
+        area.innerHTML = '<div class="elig-question" style="margin-top:20px;">Are you between 18 and 26 years old, OR were you ever in the US between ages 18\u201326?</div>'
+            + '<div class="elig-options" id="eligSSOptions2">'
+            + '<button class="elig-option" data-choice="no">No (I was never in the US during ages 18\u201326)</button>'
+            + '<button class="elig-option" data-choice="current">Yes, I\u2019m currently between 18 and 26</button>'
+            + '<button class="elig-option" data-choice="past">Yes, but I\u2019m over 26 now</button>'
+            + '</div><div id="eligSSArea2"></div>';
+
+        area.querySelectorAll("#eligSSOptions2 .elig-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                area.querySelectorAll("#eligSSOptions2 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                btn.style.opacity = "1";
+                const area2 = $("#eligSSArea2");
+                if (btn.dataset.choice === "no") {
+                    eligResults[6] = { label: "Selective Service", color: "green", text: "Not applicable \u2014 you were not in the US during the required age range." };
+                    area2.innerHTML = '<div class="elig-result elig-result--green">Selective Service registration does not apply in your case.</div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                    $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+                } else if (btn.dataset.choice === "current") {
+                    eligSSPart3Current(area2);
+                } else {
+                    eligSSPart3Past(area2);
+                }
+            });
+        });
+    }
+
+    function eligSSPart3Current(container) {
+        container.innerHTML = '<div class="elig-question" style="margin-top:20px;">Have you registered for the Selective Service?</div>'
+            + '<div class="elig-options" id="eligSSOptions3">'
+            + '<button class="elig-option" data-choice="yes">Yes</button>'
+            + '<button class="elig-option" data-choice="no">No</button>'
+            + '</div><div id="eligSSArea3"></div>';
+
+        container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                btn.style.opacity = "1";
+                const area3 = $("#eligSSArea3");
+                if (btn.dataset.choice === "yes") {
+                    eligResults[6] = { label: "Selective Service", color: "green", text: "Registered for Selective Service." };
+                    area3.innerHTML = '<div class="elig-result elig-result--green">You\u2019re registered. No issues here.</div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                } else {
+                    eligResults[6] = { label: "Selective Service", color: "yellow", text: "Should register at sss.gov before applying." };
+                    area3.innerHTML = '<div class="elig-result elig-result--yellow">You should register now before applying. <a href="https://www.sss.gov" target="_blank" rel="noopener">Register at sss.gov</a></div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                }
+                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+            });
+        });
+    }
+
+    function eligSSPart3Past(container) {
+        container.innerHTML = '<div class="elig-question" style="margin-top:20px;">Did you register for the Selective Service when you were between 18\u201326?</div>'
+            + '<div class="elig-options" id="eligSSOptions3">'
+            + '<button class="elig-option" data-choice="yes">Yes</button>'
+            + '<button class="elig-option" data-choice="no">No</button>'
+            + '</div><div id="eligSSArea3"></div>';
+
+        container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                container.querySelectorAll("#eligSSOptions3 .elig-option").forEach(b => { b.disabled = true; b.style.opacity = "0.5"; });
+                btn.style.opacity = "1";
+                const area3 = $("#eligSSArea3");
+                if (btn.dataset.choice === "yes") {
+                    eligResults[6] = { label: "Selective Service", color: "green", text: "Registered for Selective Service." };
+                    area3.innerHTML = '<div class="elig-result elig-result--green">You\u2019re registered. No issues here.</div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                } else {
+                    eligResults[6] = { label: "Selective Service", color: "yellow", text: "May need a Status Information Letter from Selective Service." };
+                    area3.innerHTML = '<div class="elig-result elig-result--yellow">You may need to request a Status Information Letter. This can affect your application. <a href="https://www.sss.gov/verify/sil/" target="_blank" rel="noopener">Request a Status Information Letter</a></div>'
+                        + '<button class="elig-next-btn" id="eligNextBtn">Next \u2192</button>';
+                }
+                $("#eligNextBtn").addEventListener("click", () => { eligStep++; eligRenderStep(); });
+            });
+        });
+    }
+
+    function eligRenderSummary() {
+        const content = $("#eligContent");
+        let greens = 0, yellows = 0, reds = 0;
+        eligResults.forEach(r => {
+            if (r.color === "green") greens++;
+            else if (r.color === "yellow") yellows++;
+            else reds++;
+        });
+
+        let verdictClass, verdictMsg;
+        if (reds > 0) {
+            verdictClass = "red";
+            verdictMsg = "One or more areas may prevent you from applying at this time. Review the red items below and consider consulting an immigration attorney.";
+        } else if (yellows > 0) {
+            verdictClass = "yellow";
+            verdictMsg = "You may be eligible, but some areas need attention. Review the yellow items below.";
+        } else {
+            verdictClass = "green";
+            verdictMsg = "You appear to meet the basic eligibility requirements! Consider filing Form N-400.";
+        }
+
+        let html = '<div class="elig-summary">';
+        html += '<div class="elig-summary-header"><h2>Your Results</h2></div>';
+
+        html += '<div class="elig-counts">';
+        html += '<span class="elig-count-badge elig-count-badge--green">' + greens + ' Good</span>';
+        if (yellows > 0) html += '<span class="elig-count-badge elig-count-badge--yellow">' + yellows + ' Attention</span>';
+        if (reds > 0) html += '<span class="elig-count-badge elig-count-badge--red">' + reds + ' Concern</span>';
+        html += '</div>';
+
+        html += '<div class="elig-verdict elig-verdict--' + verdictClass + '">' + verdictMsg + '</div>';
+
+        html += '<div class="elig-results-grid">';
+        eligResults.forEach(r => {
+            html += '<div class="elig-result-row">'
+                + '<span class="elig-result-dot elig-result-dot--' + r.color + '"></span>'
+                + '<span class="elig-result-label">' + r.label + '</span>'
+                + '</div>';
+        });
+        html += '</div>';
+
+        html += '<div class="elig-disclaimer">'
+            + '<strong>Disclaimer:</strong> This is an informational tool only and is not legal advice. '
+            + 'Eligibility for naturalization depends on many factors. Consult an immigration attorney for personalized guidance.'
+            + '</div>';
+
+        html += '<div class="elig-links">';
+        html += '<a href="https://www.uscis.gov/n-400" target="_blank" rel="noopener">\u{1F4CB} Form N-400 on USCIS.gov</a>';
+        html += '<a href="https://www.uscis.gov/citizenship/find-study-materials-and-resources" target="_blank" rel="noopener">\u{1F4DA} USCIS Study Materials</a>';
+        html += '<a href="https://www.uscis.gov/citizenship/exceptions-and-accommodations" target="_blank" rel="noopener">\u267F Exceptions &amp; Accommodations</a>';
+        html += '</div>';
+
+        html += '<button class="elig-start-over" id="eligStartOverBtn">Start Over</button>';
+        html += '</div>';
+
+        content.innerHTML = html;
+
+        // Confetti if all green
+        if (reds === 0 && yellows === 0) {
+            fireConfetti();
+        }
+
+        $("#eligStartOverBtn").addEventListener("click", eligStartOver);
     }
 
     // ================================================================
