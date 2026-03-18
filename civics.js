@@ -1381,6 +1381,7 @@
     // ---- Sound ----
     function initSoundToggle() {
         const btn = $("#soundToggle");
+        if (!btn) return;
         btn.setAttribute("aria-checked", soundEnabled ? "true" : "false");
         btn.addEventListener("click", () => {
             soundEnabled = !soundEnabled;
@@ -1415,9 +1416,9 @@
             const toggle = $(`#${toggleId}`);
             const modal = $(`#${modalId}`);
             const close = $(`#${closeId}`);
-            toggle.addEventListener("click", () => { modal.style.display = modal.style.display === "none" ? "" : "none"; });
-            close.addEventListener("click", () => { modal.style.display = "none"; });
-            modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+            if (toggle && modal) toggle.addEventListener("click", () => { modal.style.display = modal.style.display === "none" ? "" : "none"; });
+            if (close && modal) close.addEventListener("click", () => { modal.style.display = "none"; });
+            if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
         });
     }
 
